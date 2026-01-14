@@ -1,9 +1,9 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-namespace BtSnoop.Parser;
+namespace BtSnoop.Hci;
 
-internal static class HciPacketTypeValues
+public static class HciPacketTypeValues
 {
     public const byte Command = 0x01;
     public const byte Acl = 0x02;
@@ -16,10 +16,10 @@ public readonly struct HciPacketType
 {
     public byte Value { get; }
     public bool IsKnown => Value is HciPacketTypeValues.Command
-                                    or HciPacketTypeValues.Acl
-                                    or HciPacketTypeValues.Sco
-                                    or HciPacketTypeValues.Event
-                                    or HciPacketTypeValues.Iso;
+        or HciPacketTypeValues.Acl
+        or HciPacketTypeValues.Sco
+        or HciPacketTypeValues.Event
+        or HciPacketTypeValues.Iso;
 
     internal HciPacketType(byte value) => Value = value;
 
