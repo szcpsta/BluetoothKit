@@ -146,14 +146,29 @@ public class Pt5Parser : IPowerSampleParser
 
     public double GetTimestamp(long index) => index * _secondsPerSample;
 
-    public double GetCurrent(long index)
+    public bool TryGetCurrent(long index, out double current)
     {
         if (_sample.SampleIndex != index)
         {
             GetSample(index);
         }
 
-        return _sample.Missing ? MissingRawCurrent : _sample.MainCurrent;
+        if (_sample.Missing)
+        {
+            current = 0;
+            return false;
+        }
+
+        current = _sample.MainCurrent;
+        return true;
+    }
+
+    public double GetCurrent(long index)
+    {
+        if (TryGetCurrent(index, out var current))
+            return current;
+
+        return MissingRawCurrent;
     }
 
     public void Dispose()

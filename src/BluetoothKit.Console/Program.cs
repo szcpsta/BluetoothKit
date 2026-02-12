@@ -10,6 +10,7 @@ app.Configure(config =>
     config.AddBranch("power", add =>
     {
         add.AddCommand<SummaryCommand>("summary");
+        add.AddCommand<ExtractCommand>("extract");
     });
 });
 

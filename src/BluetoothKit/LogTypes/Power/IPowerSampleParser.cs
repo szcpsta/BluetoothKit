@@ -15,5 +15,7 @@ public interface IPowerSampleParser : IDisposable
 
     double GetTimestamp(long index);
 
+    bool TryGetCurrent(long index, out double current);
+
     double GetCurrent(long index);
 }
