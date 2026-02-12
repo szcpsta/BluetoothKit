@@ -59,7 +59,7 @@ public class Pt5ParserTests
         Assert.Equal(801166, parser.SampleCount);
         Assert.Equal(0.0002, parser.Period);
         Assert.Equal(610.9344, parser.AverageCurrent, precision: 3);
-        Assert.Equal(0x8D2BB143D3F2B44, parser.CaptureDate.Ticks);
+        Assert.Equal(0x8D2BAC8CD578344, parser.CaptureDate.ToUniversalTime().Ticks);
     }
 
     [Fact]
