@@ -12,24 +12,24 @@ internal class SummaryCommand : Command<SummaryCommand.Settings>
 {
     public class Settings : GlobalSettings
     {
-        [CommandArgument(0, "<name>")]
-        [Description("The file name to analyze")]
-        public string FileName { get; init; } = string.Empty;
+        [CommandArgument(0, "<path>")]
+        [Description("The file path to analyze")]
+        public string FilePath { get; init; } = string.Empty;
     }
 
     protected override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
-        if (!File.Exists(settings.FileName))
+        if (!File.Exists(settings.FilePath))
         {
-            AnsiConsole.MarkupLine($"[bold red]Error:[/] Input file not found: [yellow]{settings.FileName}[/]");
+            AnsiConsole.MarkupLine($"[bold red]Error:[/] Input file not found: [yellow]{settings.FilePath}[/]");
             return -1;
         }
 
-        using var pt5 = new Pt5Parser(File.Open(settings.FileName, FileMode.Open));
+        using var pt5 = new Pt5Parser(File.Open(settings.FilePath, FileMode.Open));
 
         if (settings.Verbose == true)
         {
-            AnsiConsole.MarkupLine($"[bold cyan]{Path.GetFileName(settings.FileName)}[/]");
+            AnsiConsole.MarkupLine($"[bold cyan]{Path.GetFileName(settings.FilePath)}[/]");
         }
 
         AnsiConsole.MarkupLine($"[bold green] SampleCount     : {pt5.SampleCount}[/]");
