@@ -3,7 +3,7 @@
 
 using BluetoothKit.LogTypes.Hci.Reader;
 
-namespace BluetoothKit.Tests.LogTypes.Hci;
+namespace BluetoothKit.Tests.LogTypes.Hci.Reader;
 
 public class BtSnoopReaderTests
 {
