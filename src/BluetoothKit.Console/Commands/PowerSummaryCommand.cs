@@ -8,7 +8,7 @@ using Spectre.Console.Cli;
 
 namespace BluetoothKit.Console.Commands;
 
-internal class SummaryCommand : Command<SummaryCommand.Settings>
+internal class PowerSummaryCommand : Command<PowerSummaryCommand.Settings>
 {
     public class Settings : GlobalSettings
     {
@@ -29,9 +29,10 @@ internal class SummaryCommand : Command<SummaryCommand.Settings>
 
         if (settings.Verbose == true)
         {
-            AnsiConsole.MarkupLine($"[bold cyan]{Path.GetFileName(settings.FilePath)}[/]");
+            AnsiConsole.MarkupLine("[bold yellow]POWER SUMMARY[/]\n");
         }
 
+        AnsiConsole.MarkupLine($"[bold green]{Path.GetFileName(settings.FilePath)}[/]");
         AnsiConsole.MarkupLine($"[bold green] SampleCount     : {pt5.SampleCount}[/]");
         AnsiConsole.MarkupLine($"[bold green] Period          : {pt5.Period}[/]");
         AnsiConsole.MarkupLine($"[bold green] Average Current : {pt5.AverageCurrent:F3}[/]");
