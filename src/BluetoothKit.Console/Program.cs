@@ -7,10 +7,16 @@ var app = new CommandApp();
 
 app.Configure(config =>
 {
-    config.AddBranch("power", add =>
+    config.AddBranch("power", power =>
     {
-        add.AddCommand<SummaryCommand>("summary");
-        add.AddCommand<ExtractCommand>("extract");
+        power.AddCommand<PowerSummaryCommand>("summary");
+        power.AddCommand<PowerExtractCommand>("extract");
+    });
+
+    config.AddBranch("hci", hci =>
+    {
+        hci.AddCommand<HciSummaryCommand>("summary");
+        hci.AddCommand<HciExtractCommand>("extract");
     });
 });
 
