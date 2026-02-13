@@ -1,6 +1,6 @@
 # BluetoothKit
 
-BluetoothKit is a .NET library and CLI for parsing power log data (PT5) and producing summaries or aggregated outputs.
+BluetoothKit is a .NET library and CLI for parsing power log data (PT5) and producing summaries or aggregated outputs. The library also includes HCI (btsnoop/H4) readers and packet parsers.
 
 ## Prerequisites
 
@@ -8,7 +8,7 @@ BluetoothKit is a .NET library and CLI for parsing power log data (PT5) and prod
 
 ## Project Structure
 
-- `src/BluetoothKit` - core library (PT5 parser, power log types)
+- `src/BluetoothKit` - core library (PT5 parser, power log types, HCI btsnoop reader + packet parsing)
 - `src/BluetoothKit.Console` - CLI app built on Spectre.Console.Cli
 - `tests/BluetoothKit.Tests` - xUnit test project
 - `tests/TestData` - sample data used by tests
