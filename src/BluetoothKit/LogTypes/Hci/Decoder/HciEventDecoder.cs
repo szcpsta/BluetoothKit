@@ -11,12 +11,15 @@ public class HciEventDecoder
     {
         return packet.EventCode.Value switch
         {
+            0x3E when LeMetaEventDecoder.TryDecodeEvent(packet, out var leDecoded)
+                => new HciDecodedEvent(packet, leDecoded.Status, leDecoded.Name, leDecoded.Fields),
             0x0E => DecodeCommandCompleteEvent("Command Complete", packet),
             0x0F => DecodeCommandStatusEvent("Command Status", packet),
             _ => new HciDecodedEvent(packet, HciDecodeStatus.Unknown, "Unknown", Array.Empty<HciField>())
         };
     }
 
+    // Event Code 0x0E
     private static HciDecodedEvent DecodeCommandCompleteEvent(string name, HciEventPacket packet)
     {
         var span = new HciSpanReader(packet.Parameters.Span);
@@ -43,6 +46,7 @@ public class HciEventDecoder
         return new HciDecodedEvent(packet, HciDecodeStatus.Success, name, fields);
     }
 
+    // Event Code 0x0F
     private static HciDecodedEvent DecodeCommandStatusEvent(string name, HciEventPacket packet)
     {
         var span = new HciSpanReader(packet.Parameters.Span);
