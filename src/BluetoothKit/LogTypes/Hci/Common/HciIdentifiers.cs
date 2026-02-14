@@ -35,7 +35,7 @@ public readonly struct HciOpcode
 
     internal HciOpcode(ushort value) => Value = value;
 
-    public override string ToString() => $"0x{Value:X4} (OGF={Ogf}, OCF={Ocf})";
+    public override string ToString() => $"0x{Value:X4} (OGF=0x{Ogf:X2}, OCF=0x{Ocf:X3})";
 }
 
 public readonly struct HciEventCode

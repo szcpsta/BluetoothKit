@@ -43,6 +43,24 @@ Run the console app from the repo root:
 dotnet run --project src/BluetoothKit.Console -- power summary <path>
 ```
 
+Filter HCI btsnoop/H4 logs (hex filters are required):
+
+```bash
+dotnet run --project src/BluetoothKit.Console -- hci filter <path> --eventcode 0x0E,0x0F
+```
+
+```bash
+dotnet run --project src/BluetoothKit.Console -- hci filter <path> --ogf 0x04 --ocf 0x0001
+```
+
+HCI filter options:
+
+- `--ogf`, `--ocf`, `--opcode`, `--eventcode` (comma-separated, hex with `0x` prefix)
+- `--mode` (`console` or `json`, default: `console`)
+- `--out` output path (optional; required when `--mode json`, defaults to `<input>.json`)
+
+If no filters are provided, the command prints a warning and produces no entries.
+
 Extract aggregated samples:
 
 ```bash
@@ -59,3 +77,30 @@ Options:
 - `--bucket` bucket size (default: `1`)
 - `--agg` / `--aggregates` list of aggregates (`avg`, `min`, `max`, comma-separated)
 - `--out` output path (required when `--mode json`)
+
+## HCI Decoder Design Notes
+
+The HCI pipeline is split into parser and decoder responsibilities.
+
+- Parser (`HciPacketParser`) validates structure (packet type and length). It returns `false` on invalid structure and produces an `HciUnknownPacket`.
+- Decoder always returns a decoded result and uses `HciDecodeStatus` to describe semantic decode quality.
+
+Status conventions:
+
+- `Success`: fully decoded semantic fields
+- `Unknown`: structure is valid but the command/event is not recognized
+- `Invalid`: structure is not valid (e.g., parameter length mismatch)
+
+Unknown handling:
+
+- Unknown packet types produce `HciUnknownPacket` at parse time and map to `HciUnknownDecodedPacket` with `Status=Invalid`.
+- Unrecognized commands/events still produce `HciDecodedCommand`/`HciDecodedEvent` with `Status=Unknown`.
+
+Filtering:
+
+- Step 1 is "key filtering": fast extraction of stable identifiers (packet type, opcode, event code, subevent code) without full field decoding.
+- Step 2 is "field filtering": uses decoded fields and is intentionally deferred until the key-filtering path is complete.
+
+Field model:
+
+- For now fields remain simple (`Name`, `Value`). A richer field schema (id/meta/value/display) will be introduced after key filtering is in place.

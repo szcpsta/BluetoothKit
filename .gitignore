@@ -371,4 +371,4 @@ test:.cs
 *.testStats.csv
 
 # Local-only artifacts (specs, temp, caches)
-local/
+.local/
