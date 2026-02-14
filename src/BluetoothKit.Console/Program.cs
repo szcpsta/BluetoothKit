@@ -17,6 +17,7 @@ app.Configure(config =>
     {
         hci.AddCommand<HciSummaryCommand>("summary");
         hci.AddCommand<HciExtractCommand>("extract");
+        hci.AddCommand<HciFilterCommand>("filter");
     });
 });
 
