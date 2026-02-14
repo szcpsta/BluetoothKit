@@ -53,13 +53,21 @@ dotnet run --project src/BluetoothKit.Console -- hci filter <path> --eventcode 0
 dotnet run --project src/BluetoothKit.Console -- hci filter <path> --ogf 0x04 --ocf 0x0001
 ```
 
+```bash
+dotnet run --project src/BluetoothKit.Console -- hci filter <path> --set 1
+```
+
 HCI filter options:
 
+- `--set` predefined filter set id (see `--set 1` example below)
 - `--ogf`, `--ocf`, `--opcode`, `--eventcode` (comma-separated, hex with `0x` prefix)
+- `--le-subevent` LE Meta subevent filter (comma-separated, hex with `0x` prefix)
 - `--mode` (`console` or `json`, default: `console`)
 - `--out` output path (optional; required when `--mode json`, defaults to `<input>.json`)
 
 If no filters are provided, the command prints a warning and produces no entries.
+
+Filter set `--set 1` targets LE legacy + extended advertising/scan commands and related LE Meta subevents (0x3E with subevents 0x02, 0x0B, 0x0D, 0x11, 0x12, 0x13).
 
 Extract aggregated samples:
 

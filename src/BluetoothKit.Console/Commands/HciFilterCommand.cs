@@ -30,6 +30,10 @@ internal sealed class HciFilterCommand : AsyncCommand<HciFilterCommand.Settings>
         [Description("Output file path (optional; defaults to <input>.hci.json)")]
         public string? OutputPath { get; set; }
 
+        [CommandOption("--set <ID>")]
+        [Description("Filter set id (predefined filter presets)")]
+        public int? SetId { get; set; }
+
         [CommandOption("--ogf <OGF>")]
         [Description("OGF filter (comma-separated, hex like 0x04)")]
         public string? Ogf { get; set; }
@@ -45,6 +49,10 @@ internal sealed class HciFilterCommand : AsyncCommand<HciFilterCommand.Settings>
         [CommandOption("--eventcode <EVENTCODE>")]
         [Description("Event code filter (comma-separated, hex like 0x0E)")]
         public string? EventCode { get; set; }
+
+        [CommandOption("--le-subevent <LESUBEVENT>")]
+        [Description("LE Meta subevent filter (comma-separated, hex like 0x02)")]
+        public string? LeSubevent { get; set; }
 
         internal FilterSpec ParsedFilter { get; private set; } = FilterSpec.CreateDefault();
 
@@ -140,7 +148,7 @@ internal sealed class HciFilterCommand : AsyncCommand<HciFilterCommand.Settings>
             if (packet is HciEventPacket eventPacket)
             {
                 var eventCode = eventPacket.EventCode.Value;
-                if (!settings.ParsedFilter.MatchesEvent(eventPacket.EventCode))
+                if (!settings.ParsedFilter.MatchesEvent(eventPacket))
                 {
                     frameNumber++;
                     continue;
@@ -217,10 +225,12 @@ internal sealed class HciFilterCommand : AsyncCommand<HciFilterCommand.Settings>
             var ocf = output.Filter.OCF?.Count > 0 ? string.Join(", ", output.Filter.OCF) : "n/a";
             var opcode = output.Filter.Opcode?.Count > 0 ? string.Join(", ", output.Filter.Opcode) : "n/a";
             var eventcode = output.Filter.EventCode?.Count > 0 ? string.Join(", ", output.Filter.EventCode) : "n/a";
+            var leSubevent = output.Filter.LeSubevent?.Count > 0 ? string.Join(", ", output.Filter.LeSubevent) : "n/a";
             AnsiConsole.MarkupLine($"[bold green] Filter OGF     : {ogf}[/]");
             AnsiConsole.MarkupLine($"[bold green] Filter OCF     : {ocf}[/]");
             AnsiConsole.MarkupLine($"[bold green] Filter Opcode  : {opcode}[/]");
             AnsiConsole.MarkupLine($"[bold green] Filter Event   : {eventcode}[/]");
+            AnsiConsole.MarkupLine($"[bold green] Filter LE Sub  : {leSubevent}[/]");
         }
 
         if (output.Filter?.IsEmpty == true)
@@ -232,11 +242,11 @@ internal sealed class HciFilterCommand : AsyncCommand<HciFilterCommand.Settings>
             {
                 case CommandEntry cmd:
                     AnsiConsole.WriteLine(
-                        $"{cmd.FrameNumber,6} {cmd.TimestampUtc:O} cmd {cmd.OpcodeValue} {cmd.Name} [{cmd.DecodeStatus}]");
+                        $"{cmd.FrameNumber,6} {cmd.TimestampUtc:O} Command {cmd.OpcodeValue} {cmd.Name} [{cmd.DecodeStatus}]");
                     break;
                 case EventEntry evt:
                     AnsiConsole.WriteLine(
-                        $"{evt.FrameNumber,6} {evt.TimestampUtc:O} evt {evt.EventCode} {evt.Name} [{evt.DecodeStatus}]");
+                        $"{evt.FrameNumber,6} {evt.TimestampUtc:O} Event {evt.EventCode} {evt.Name} [{evt.DecodeStatus}]");
                     break;
                 default:
                     AnsiConsole.WriteLine(
@@ -275,10 +285,12 @@ internal sealed class HciFilterCommand : AsyncCommand<HciFilterCommand.Settings>
         public List<string>? OCF { get; init; }
         public List<string>? Opcode { get; init; }
         public List<string>? EventCode { get; init; }
+        public List<string>? LeSubevent { get; init; }
         public bool IsEmpty => (OGF is null || OGF.Count == 0)
                                && (OCF is null || OCF.Count == 0)
                                && (Opcode is null || Opcode.Count == 0)
-                               && (EventCode is null || EventCode.Count == 0);
+                               && (EventCode is null || EventCode.Count == 0)
+                               && (LeSubevent is null || LeSubevent.Count == 0);
 
         public static FilterOutputFilter FromSpec(FilterSpec spec) => new()
         {
@@ -286,12 +298,13 @@ internal sealed class HciFilterCommand : AsyncCommand<HciFilterCommand.Settings>
             OCF = spec.Ocfs.Select(FormatOcf).OrderBy(x => x).ToList(),
             Opcode = spec.Opcodes.Select(FormatOpcode).OrderBy(x => x).ToList(),
             EventCode = spec.EventCodes.Select(FormatEventCode).OrderBy(x => x).ToList(),
+            LeSubevent = spec.LeSubevents.Select(FormatEventCode).OrderBy(x => x).ToList(),
         };
     }
 
-    [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
-    [JsonDerivedType(typeof(CommandEntry), "cmd")]
-    [JsonDerivedType(typeof(EventEntry), "evt")]
+    [JsonPolymorphic(TypeDiscriminatorPropertyName = "Type")]
+    [JsonDerivedType(typeof(CommandEntry), "Command")]
+    [JsonDerivedType(typeof(EventEntry), "Event")]
     private abstract class FilterEntry
     {
         public long FrameNumber { get; init; }
@@ -314,44 +327,22 @@ internal sealed class HciFilterCommand : AsyncCommand<HciFilterCommand.Settings>
         public string EventCode { get; init; } = string.Empty;
     }
 
-
-    internal sealed record FilterSpec(HashSet<byte> Ogfs, HashSet<ushort> Ocfs, HashSet<ushort> Opcodes, HashSet<byte> EventCodes)
-    {
-        public static FilterSpec CreateDefault()
-            => new(new HashSet<byte>(), new HashSet<ushort>(), new HashSet<ushort>(), new HashSet<byte>());
-
-        public bool IsEmpty => Ogfs.Count == 0 && Ocfs.Count == 0 && Opcodes.Count == 0 && EventCodes.Count == 0;
-        public bool HasCommandFilters => Ogfs.Count != 0 || Ocfs.Count != 0 || Opcodes.Count != 0;
-        public bool HasEventFilters => EventCodes.Count != 0;
-
-        public bool MatchesCommand(HciOpcode opcode)
-        {
-            if (IsEmpty || !HasCommandFilters)
-                return false;
-            if (Ogfs.Count != 0 && !Ogfs.Contains(opcode.Ogf))
-                return false;
-            if (Ocfs.Count != 0 && !Ocfs.Contains(opcode.Ocf))
-                return false;
-            if (Opcodes.Count != 0 && !Opcodes.Contains(opcode.Value))
-                return false;
-
-            return true;
-        }
-
-        public bool MatchesEvent(HciEventCode eventCode)
-        {
-            if (IsEmpty || !HasEventFilters)
-                return false;
-            if (EventCodes.Count != 0 && !EventCodes.Contains(eventCode.Value))
-                return false;
-
-            return true;
-        }
-    }
-
     private static bool TryParseFilter(Settings settings, out FilterSpec filter, out string? error)
     {
         error = null;
+
+        FilterSpec baseFilter = FilterSpec.CreateDefault();
+        if (settings.SetId is not null)
+        {
+            if (!HciFilterSets.TryGet(settings.SetId.Value, out var preset))
+            {
+                error = $"Unknown filter set id '{settings.SetId.Value}'. Available sets: {HciFilterSets.DescribeKnownSets()}";
+                filter = FilterSpec.CreateDefault();
+                return false;
+            }
+
+            baseFilter = preset.Spec;
+        }
 
         if (!TryParseByteList(settings.Ogf, out var ogfs, out error, "ogf"))
         {
@@ -387,7 +378,13 @@ internal sealed class HciFilterCommand : AsyncCommand<HciFilterCommand.Settings>
             }
         }
 
-        filter = new FilterSpec(ogfs, ocfs, opcodes, eventCodes);
+        if (!TryParseByteList(settings.LeSubevent, out var leSubevents, out error, "le-subevent"))
+        {
+            filter = FilterSpec.CreateDefault();
+            return false;
+        }
+
+        filter = baseFilter.Merge(new FilterSpec(ogfs, ocfs, opcodes, eventCodes, leSubevents));
         return true;
     }
 

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using BluetoothKit.LogTypes.Hci.Common;
+using BluetoothKit.LogTypes.Hci.Decoder.Formatters;
 
 namespace BluetoothKit.LogTypes.Hci.Decoder.Commands;
 
@@ -57,6 +58,7 @@ internal static class InformationalParametersDecoder
         }
     }
 
+    // OGF 0x04, OCF 0x0004
     private static DecodedCommand DecodeReadLocalExtendedFeaturesCommand(string name, ReadOnlySpan<byte> parameters)
     {
         var span = new HciSpanReader(parameters);
@@ -65,12 +67,13 @@ internal static class InformationalParametersDecoder
 
         var fields = new List<HciField>
         {
-            new("Page Number", FormatHex(pageNumber))
+            new("Page Number", HciValueFormatter.Hex(pageNumber))
         };
 
         return new DecodedCommand(name, HciDecodeStatus.Success, fields);
     }
 
+    // OGF 0x04, OCF 0x000E
     private static DecodedCommand DecodeReadLocalSupportedCodecCapabilitiesCommand(string name, ReadOnlySpan<byte> parameters)
     {
         var span = new HciSpanReader(parameters);
@@ -85,14 +88,15 @@ internal static class InformationalParametersDecoder
 
         var fields = new List<HciField>
         {
-            new("Codec ID", FormatHexBytes(codecId)),
-            new("Logical Transport Type", FormatLogicalTransportType(transportType)),
-            new("Direction", FormatDirection(direction)),
+            new("Codec ID", HciValueFormatter.HexBytes(codecId)),
+            new("Logical Transport Type", HciValueFormatter.LogicalTransportType(transportType)),
+            new("Direction", HciValueFormatter.Direction(direction)),
         };
 
         return new DecodedCommand(name, HciDecodeStatus.Success, fields);
     }
 
+    // OGF 0x04, OCF 0x000F
     private static DecodedCommand DecodeReadLocalSupportedControllerDelayCommand(string name, ReadOnlySpan<byte> parameters)
     {
         var span = new HciSpanReader(parameters);
@@ -109,16 +113,17 @@ internal static class InformationalParametersDecoder
 
         var fields = new List<HciField>
         {
-            new("Codec ID", FormatHexBytes(codecId)),
-            new("Logical Transport Type", FormatLogicalTransportType(transportType)),
-            new("Direction", FormatDirection(direction)),
+            new("Codec ID", HciValueFormatter.HexBytes(codecId)),
+            new("Logical Transport Type", HciValueFormatter.LogicalTransportType(transportType)),
+            new("Direction", HciValueFormatter.Direction(direction)),
             new("Codec Configuration Length", configLength.ToString()),
-            new("Codec Configuration", FormatHexBytes(config)),
+            new("Codec Configuration", HciValueFormatter.HexBytes(config)),
         };
 
         return new DecodedCommand(name, HciDecodeStatus.Success, fields);
     }
 
+    // OGF 0x04, OCF 0x0001/0x0002/0x0003/0x0005/0x0009/0x000A/0x000B/0x000C/0x000D
     private static DecodedCommand DecodeNoParamsCommand(string name, ReadOnlySpan<byte> parameters)
     {
         if (parameters.IsEmpty)
@@ -132,30 +137,4 @@ internal static class InformationalParametersDecoder
         return new DecodedCommand(name, HciDecodeStatus.Invalid, Array.Empty<HciField>());
     }
 
-    private static string FormatHex(byte value) => $"0x{value:X2}";
-
-    private static string FormatHexBytes(ReadOnlySpan<byte> value)
-        => value.IsEmpty ? "0x" : $"0x{Convert.ToHexString(value)}";
-
-    private static string FormatLogicalTransportType(byte value)
-    {
-        return value switch
-        {
-            0x00 => "0x00 (BR/EDR ACL)",
-            0x01 => "0x01 (BR/EDR SCO or eSCO)",
-            0x02 => "0x02 (LE CIS)",
-            0x03 => "0x03 (LE BIS)",
-            _ => FormatHex(value),
-        };
-    }
-
-    private static string FormatDirection(byte value)
-    {
-        return value switch
-        {
-            0x00 => "0x00 (Input)",
-            0x01 => "0x01 (Output)",
-            _ => FormatHex(value),
-        };
-    }
 }
