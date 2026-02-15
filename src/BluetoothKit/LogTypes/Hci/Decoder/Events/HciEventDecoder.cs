@@ -2,14 +2,33 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using BluetoothKit.LogTypes.Hci.Common;
-using BluetoothKit.LogTypes.Hci.Decoder;
+using BluetoothKit.LogTypes.Hci.Decoder.Vendor;
 
 namespace BluetoothKit.LogTypes.Hci.Decoder.Events;
 
 public class HciEventDecoder
 {
+    private readonly IVendorDecoder _vendorDecoder;
+
+    public HciEventDecoder() : this(new UnknownVendorDecoder())
+    {
+    }
+
+    internal HciEventDecoder(IVendorDecoder vendorDecoder)
+    {
+        _vendorDecoder = vendorDecoder;
+    }
+
     public HciDecodedEvent Decode(HciEventPacket packet)
     {
+        if (packet.EventCode.IsVendorSpecific)
+        {
+            if (_vendorDecoder.TryDecodeEvent(packet, out var vendorDecoded))
+                return new HciDecodedEvent(packet, vendorDecoded.Status, vendorDecoded.Name, vendorDecoded.Fields);
+
+            return new HciDecodedEvent(packet, HciDecodeStatus.Unknown, _vendorDecoder.VendorId, Array.Empty<HciField>());
+        }
+
         return packet.EventCode.Value switch
         {
             0x3E when LeMetaEventDecoder.TryDecodeEvent(packet, out var leDecoded)

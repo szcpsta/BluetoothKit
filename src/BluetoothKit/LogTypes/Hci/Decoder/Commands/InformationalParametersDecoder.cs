@@ -8,9 +8,7 @@ namespace BluetoothKit.LogTypes.Hci.Decoder.Commands;
 
 internal static class InformationalParametersDecoder
 {
-    internal sealed record DecodedCommand(string Name, HciDecodeStatus Status, IReadOnlyList<HciField> Fields);
-
-    internal static bool TryDecodeCommand(HciCommandPacket packet, out DecodedCommand decoded)
+    internal static bool TryDecodeCommand(HciCommandPacket packet, out DecodedResult decoded)
     {
         decoded = default!;
 
@@ -59,7 +57,7 @@ internal static class InformationalParametersDecoder
     }
 
     // OGF 0x04, OCF 0x0004
-    private static DecodedCommand DecodeReadLocalExtendedFeaturesCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeReadLocalExtendedFeaturesCommand(string name, ReadOnlySpan<byte> parameters)
     {
         var span = new HciSpanReader(parameters);
         if (!span.TryReadU8(out var pageNumber) || !span.IsEmpty)
@@ -70,11 +68,11 @@ internal static class InformationalParametersDecoder
             new("Page Number", HciValueFormatter.Hex(pageNumber))
         };
 
-        return new DecodedCommand(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // OGF 0x04, OCF 0x000E
-    private static DecodedCommand DecodeReadLocalSupportedCodecCapabilitiesCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeReadLocalSupportedCodecCapabilitiesCommand(string name, ReadOnlySpan<byte> parameters)
     {
         var span = new HciSpanReader(parameters);
 
@@ -93,11 +91,11 @@ internal static class InformationalParametersDecoder
             new("Direction", HciValueFormatter.Direction(direction)),
         };
 
-        return new DecodedCommand(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // OGF 0x04, OCF 0x000F
-    private static DecodedCommand DecodeReadLocalSupportedControllerDelayCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeReadLocalSupportedControllerDelayCommand(string name, ReadOnlySpan<byte> parameters)
     {
         var span = new HciSpanReader(parameters);
 
@@ -120,21 +118,21 @@ internal static class InformationalParametersDecoder
             new("Codec Configuration", HciValueFormatter.HexBytes(config)),
         };
 
-        return new DecodedCommand(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // OGF 0x04, OCF 0x0001/0x0002/0x0003/0x0005/0x0009/0x000A/0x000B/0x000C/0x000D
-    private static DecodedCommand DecodeNoParamsCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeNoParamsCommand(string name, ReadOnlySpan<byte> parameters)
     {
         if (parameters.IsEmpty)
-            return new DecodedCommand(name, HciDecodeStatus.Success, Array.Empty<HciField>());
+            return new DecodedResult(name, HciDecodeStatus.Success, Array.Empty<HciField>());
 
         return CreateInvalid(name);
     }
 
-    private static DecodedCommand CreateInvalid(string name)
+    private static DecodedResult CreateInvalid(string name)
     {
-        return new DecodedCommand(name, HciDecodeStatus.Invalid, Array.Empty<HciField>());
+        return new DecodedResult(name, HciDecodeStatus.Invalid, Array.Empty<HciField>());
     }
 
 }

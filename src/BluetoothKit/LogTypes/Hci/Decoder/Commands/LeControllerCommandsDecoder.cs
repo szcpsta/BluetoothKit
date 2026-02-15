@@ -8,9 +8,7 @@ namespace BluetoothKit.LogTypes.Hci.Decoder.Commands;
 
 internal static class LeControllerCommandsDecoder
 {
-    internal sealed record DecodedCommand(string Name, HciDecodeStatus Status, IReadOnlyList<HciField> Fields);
-
-    internal static bool TryDecodeCommand(HciCommandPacket packet, out DecodedCommand decoded)
+    internal static bool TryDecodeCommand(HciCommandPacket packet, out DecodedResult decoded)
     {
         decoded = default!;
 
@@ -80,7 +78,7 @@ internal static class LeControllerCommandsDecoder
     }
 
     // OGF 0x08, OCF 0x0006
-    private static DecodedCommand DecodeSetAdvertisingParametersCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeSetAdvertisingParametersCommand(string name, ReadOnlySpan<byte> parameters)
     {
         var span = new HciSpanReader(parameters);
         if (!span.TryReadU16(out var advertisingIntervalMin)
@@ -108,11 +106,11 @@ internal static class LeControllerCommandsDecoder
             new("Advertising Filter Policy", LeValueFormatter.AdvertisingFilterPolicy(advertisingFilterPolicy)),
         };
 
-        return new DecodedCommand(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // OGF 0x08, OCF 0x0008
-    private static DecodedCommand DecodeSetAdvertisingDataCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeSetAdvertisingDataCommand(string name, ReadOnlySpan<byte> parameters)
     {
         var span = new HciSpanReader(parameters);
         if (!span.TryReadU8(out var dataLength)
@@ -130,11 +128,11 @@ internal static class LeControllerCommandsDecoder
             new("Advertising Data", FormatHexBytes(payload)),
         };
 
-        return new DecodedCommand(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // OGF 0x08, OCF 0x0009
-    private static DecodedCommand DecodeSetScanResponseDataCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeSetScanResponseDataCommand(string name, ReadOnlySpan<byte> parameters)
     {
         var span = new HciSpanReader(parameters);
         if (!span.TryReadU8(out var dataLength)
@@ -152,11 +150,11 @@ internal static class LeControllerCommandsDecoder
             new("Scan Response Data", FormatHexBytes(payload)),
         };
 
-        return new DecodedCommand(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // OGF 0x08, OCF 0x000A
-    private static DecodedCommand DecodeSetAdvertisingEnableCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeSetAdvertisingEnableCommand(string name, ReadOnlySpan<byte> parameters)
     {
         var span = new HciSpanReader(parameters);
         if (!span.TryReadU8(out var advertisingEnable) || !span.IsEmpty)
@@ -167,11 +165,11 @@ internal static class LeControllerCommandsDecoder
             new("Advertising Enable", LeValueFormatter.Enable(advertisingEnable)),
         };
 
-        return new DecodedCommand(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // OGF 0x08, OCF 0x000B
-    private static DecodedCommand DecodeSetScanParametersCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeSetScanParametersCommand(string name, ReadOnlySpan<byte> parameters)
     {
         var span = new HciSpanReader(parameters);
         if (!span.TryReadU8(out var scanType)
@@ -193,11 +191,11 @@ internal static class LeControllerCommandsDecoder
             new("Scanning Filter Policy", LeValueFormatter.ScanningFilterPolicy(scanningFilterPolicy)),
         };
 
-        return new DecodedCommand(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // OGF 0x08, OCF 0x000C
-    private static DecodedCommand DecodeSetScanEnableCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeSetScanEnableCommand(string name, ReadOnlySpan<byte> parameters)
     {
         var span = new HciSpanReader(parameters);
         if (!span.TryReadU8(out var scanEnable)
@@ -213,11 +211,11 @@ internal static class LeControllerCommandsDecoder
             new("Filter Duplicates", LeValueFormatter.FilterDuplicates(filterDuplicates)),
         };
 
-        return new DecodedCommand(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // OGF 0x08, OCF 0x0035
-    private static DecodedCommand DecodeSetAdvertisingSetRandomAddressCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeSetAdvertisingSetRandomAddressCommand(string name, ReadOnlySpan<byte> parameters)
     {
         var span = new HciSpanReader(parameters);
         if (!span.TryReadU8(out var advertisingHandle)
@@ -233,11 +231,11 @@ internal static class LeControllerCommandsDecoder
             new("Random Address", HciValueFormatter.BdAddr(randomAddress)),
         };
 
-        return new DecodedCommand(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // OGF 0x08, OCF 0x0036 (v1)
-    private static DecodedCommand DecodeSetExtendedAdvertisingParametersV1Command(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeSetExtendedAdvertisingParametersV1Command(string name, ReadOnlySpan<byte> parameters)
     {
         var span = new HciSpanReader(parameters);
         if (!span.TryReadU8(out var advertisingHandle)
@@ -279,11 +277,11 @@ internal static class LeControllerCommandsDecoder
             new("Scan Request Notification Enable", LeValueFormatter.ScanRequestNotificationEnable(scanRequestNotificationEnable)),
         };
 
-        return new DecodedCommand(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // OGF 0x08, OCF 0x007F (v2)
-    private static DecodedCommand DecodeSetExtendedAdvertisingParametersV2Command(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeSetExtendedAdvertisingParametersV2Command(string name, ReadOnlySpan<byte> parameters)
     {
         var span = new HciSpanReader(parameters);
         if (!span.TryReadU8(out var advertisingHandle)
@@ -329,11 +327,11 @@ internal static class LeControllerCommandsDecoder
             new("Secondary Advertising PHY Options", LeValueFormatter.PhyOptions(secondaryAdvertisingPhyOptions)),
         };
 
-        return new DecodedCommand(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // OGF 0x08, OCF 0x0037
-    private static DecodedCommand DecodeSetExtendedAdvertisingDataCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeSetExtendedAdvertisingDataCommand(string name, ReadOnlySpan<byte> parameters)
     {
         var span = new HciSpanReader(parameters);
         if (!span.TryReadU8(out var advertisingHandle)
@@ -356,11 +354,11 @@ internal static class LeControllerCommandsDecoder
             new("Advertising Data", FormatHexBytes(data)),
         };
 
-        return new DecodedCommand(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // OGF 0x08, OCF 0x0038
-    private static DecodedCommand DecodeSetExtendedScanResponseDataCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeSetExtendedScanResponseDataCommand(string name, ReadOnlySpan<byte> parameters)
     {
         var span = new HciSpanReader(parameters);
         if (!span.TryReadU8(out var advertisingHandle)
@@ -383,11 +381,11 @@ internal static class LeControllerCommandsDecoder
             new("Scan Response Data", FormatHexBytes(data)),
         };
 
-        return new DecodedCommand(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // OGF 0x08, OCF 0x0039
-    private static DecodedCommand DecodeSetExtendedAdvertisingEnableCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeSetExtendedAdvertisingEnableCommand(string name, ReadOnlySpan<byte> parameters)
     {
         var span = new HciSpanReader(parameters);
         if (!span.TryReadU8(out var enable)
@@ -419,11 +417,11 @@ internal static class LeControllerCommandsDecoder
         if (!span.IsEmpty)
             return CreateInvalid(name);
 
-        return new DecodedCommand(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // OGF 0x08, OCF 0x003C
-    private static DecodedCommand DecodeRemoveAdvertisingSetCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeRemoveAdvertisingSetCommand(string name, ReadOnlySpan<byte> parameters)
     {
         var span = new HciSpanReader(parameters);
         if (!span.TryReadU8(out var advertisingHandle) || !span.IsEmpty)
@@ -434,11 +432,11 @@ internal static class LeControllerCommandsDecoder
             new("Advertising Handle", FormatHex(advertisingHandle)),
         };
 
-        return new DecodedCommand(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // OGF 0x08, OCF 0x0041
-    private static DecodedCommand DecodeSetExtendedScanParametersCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeSetExtendedScanParametersCommand(string name, ReadOnlySpan<byte> parameters)
     {
         var span = new HciSpanReader(parameters);
         if (!span.TryReadU8(out var ownAddressType)
@@ -491,11 +489,11 @@ internal static class LeControllerCommandsDecoder
         if (!span.IsEmpty)
             return CreateInvalid(name);
 
-        return new DecodedCommand(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // OGF 0x08, OCF 0x0042
-    private static DecodedCommand DecodeSetExtendedScanEnableCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeSetExtendedScanEnableCommand(string name, ReadOnlySpan<byte> parameters)
     {
         var span = new HciSpanReader(parameters);
         if (!span.TryReadU8(out var enable)
@@ -515,19 +513,19 @@ internal static class LeControllerCommandsDecoder
             new("Period", FormatScanPeriod(period)),
         };
 
-        return new DecodedCommand(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // OGF 0x08, OCF varies (no-parameter commands)
-    private static DecodedCommand DecodeNoParamsCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeNoParamsCommand(string name, ReadOnlySpan<byte> parameters)
     {
         if (parameters.IsEmpty)
-            return new DecodedCommand(name, HciDecodeStatus.Success, Array.Empty<HciField>());
+            return new DecodedResult(name, HciDecodeStatus.Success, Array.Empty<HciField>());
 
         return CreateInvalid(name);
     }
 
-    private static DecodedCommand CreateInvalid(string name)
+    private static DecodedResult CreateInvalid(string name)
         => new(name, HciDecodeStatus.Invalid, Array.Empty<HciField>());
 
     private static string FormatHex(byte value) => $"0x{value:X2}";
