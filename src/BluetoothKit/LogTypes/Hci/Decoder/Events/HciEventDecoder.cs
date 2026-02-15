@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using BluetoothKit.LogTypes.Hci.Common;
+using BluetoothKit.LogTypes.Hci.Decoder;
 
-namespace BluetoothKit.LogTypes.Hci.Decoder;
+namespace BluetoothKit.LogTypes.Hci.Decoder.Events;
 
 public class HciEventDecoder
 {

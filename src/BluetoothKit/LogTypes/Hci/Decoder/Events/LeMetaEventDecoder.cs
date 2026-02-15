@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using BluetoothKit.LogTypes.Hci.Common;
+using BluetoothKit.LogTypes.Hci.Decoder;
 using BluetoothKit.LogTypes.Hci.Decoder.Formatters;
 
-namespace BluetoothKit.LogTypes.Hci.Decoder;
+namespace BluetoothKit.LogTypes.Hci.Decoder.Events;
 
 internal static class LeMetaEventDecoder
 {
