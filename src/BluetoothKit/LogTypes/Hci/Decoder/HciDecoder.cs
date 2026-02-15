@@ -4,13 +4,24 @@
 using BluetoothKit.LogTypes.Hci.Common;
 using BluetoothKit.LogTypes.Hci.Decoder.Commands;
 using BluetoothKit.LogTypes.Hci.Decoder.Events;
+using BluetoothKit.LogTypes.Hci.Decoder.Vendor;
 
 namespace BluetoothKit.LogTypes.Hci.Decoder;
 
 public class HciDecoder
 {
-    private readonly HciCommandDecoder _commandDecoder = new HciCommandDecoder();
-    private readonly HciEventDecoder _eventDecoder = new HciEventDecoder();
+    private readonly HciCommandDecoder _commandDecoder;
+    private readonly HciEventDecoder _eventDecoder;
+
+    public HciDecoder() : this(new UnknownVendorDecoder())
+    {
+    }
+
+    public HciDecoder(IVendorDecoder vendorDecoder)
+    {
+        _commandDecoder = new HciCommandDecoder(vendorDecoder);
+        _eventDecoder = new HciEventDecoder(vendorDecoder);
+    }
 
     public HciDecodedPacket Decode(HciPacket packet)
     {

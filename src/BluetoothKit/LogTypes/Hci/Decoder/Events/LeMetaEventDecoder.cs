@@ -2,16 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using BluetoothKit.LogTypes.Hci.Common;
-using BluetoothKit.LogTypes.Hci.Decoder;
 using BluetoothKit.LogTypes.Hci.Decoder.Formatters;
 
 namespace BluetoothKit.LogTypes.Hci.Decoder.Events;
 
 internal static class LeMetaEventDecoder
 {
-    internal sealed record DecodedEvent(string Name, HciDecodeStatus Status, IReadOnlyList<HciField> Fields);
-
-    internal static bool TryDecodeEvent(HciEventPacket packet, out DecodedEvent decoded)
+    internal static bool TryDecodeEvent(HciEventPacket packet, out DecodedResult decoded)
     {
         decoded = default!;
 
@@ -46,13 +43,13 @@ internal static class LeMetaEventDecoder
                 decoded = DecodeScanRequestReceivedEvent("LE Scan Request Received", subeventCode, span);
                 return true;
             default:
-                decoded = new DecodedEvent($"LE Meta event (Subevent {FormatHex(subeventCode)})", HciDecodeStatus.Unknown, Array.Empty<HciField>());
+                decoded = new DecodedResult($"LE Meta event (Subevent {FormatHex(subeventCode)})", HciDecodeStatus.Unknown, Array.Empty<HciField>());
                 return true;
         }
     }
 
     // Event Code 0x3E, Subevent 0x02
-    private static DecodedEvent DecodeAdvertisingReportEvent(string name, byte subeventCode, HciSpanReader span)
+    private static DecodedResult DecodeAdvertisingReportEvent(string name, byte subeventCode, HciSpanReader span)
     {
         if (!span.TryReadU8(out var numReports))
             return CreateInvalid(name);
@@ -86,11 +83,11 @@ internal static class LeMetaEventDecoder
         if (!span.IsEmpty)
             return CreateInvalid(name);
 
-        return new DecodedEvent(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // Event Code 0x3E, Subevent 0x0B
-    private static DecodedEvent DecodeDirectedAdvertisingReportEvent(string name, byte subeventCode, HciSpanReader span)
+    private static DecodedResult DecodeDirectedAdvertisingReportEvent(string name, byte subeventCode, HciSpanReader span)
     {
         if (!span.TryReadU8(out var numReports))
             return CreateInvalid(name);
@@ -124,11 +121,11 @@ internal static class LeMetaEventDecoder
         if (!span.IsEmpty)
             return CreateInvalid(name);
 
-        return new DecodedEvent(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // Event Code 0x3E, Subevent 0x0D
-    private static DecodedEvent DecodeExtendedAdvertisingReportEvent(string name, byte subeventCode, HciSpanReader span)
+    private static DecodedResult DecodeExtendedAdvertisingReportEvent(string name, byte subeventCode, HciSpanReader span)
     {
         if (!span.TryReadU8(out var numReports))
             return CreateInvalid(name);
@@ -176,11 +173,11 @@ internal static class LeMetaEventDecoder
         if (!span.IsEmpty)
             return CreateInvalid(name);
 
-        return new DecodedEvent(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // Event Code 0x3E, Subevent 0x11
-    private static DecodedEvent DecodeScanTimeoutEvent(string name, byte subeventCode, HciSpanReader span)
+    private static DecodedResult DecodeScanTimeoutEvent(string name, byte subeventCode, HciSpanReader span)
     {
         if (!span.IsEmpty)
             return CreateInvalid(name);
@@ -190,11 +187,11 @@ internal static class LeMetaEventDecoder
             new("Subevent Code", HciValueFormatter.Hex(subeventCode)),
         };
 
-        return new DecodedEvent(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // Event Code 0x3E, Subevent 0x12
-    private static DecodedEvent DecodeAdvertisingSetTerminatedEvent(string name, byte subeventCode, HciSpanReader span)
+    private static DecodedResult DecodeAdvertisingSetTerminatedEvent(string name, byte subeventCode, HciSpanReader span)
     {
         if (!span.TryReadU8(out var status)
             || !span.TryReadU8(out var advertisingHandle)
@@ -214,11 +211,11 @@ internal static class LeMetaEventDecoder
             new("Num Completed Extended Advertising Events", FormatHex(numCompletedEvents)),
         };
 
-        return new DecodedEvent(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
     // Event Code 0x3E, Subevent 0x13
-    private static DecodedEvent DecodeScanRequestReceivedEvent(string name, byte subeventCode, HciSpanReader span)
+    private static DecodedResult DecodeScanRequestReceivedEvent(string name, byte subeventCode, HciSpanReader span)
     {
         if (!span.TryReadU8(out var advertisingHandle)
             || !span.TryReadU8(out var scannerAddressType)
@@ -236,10 +233,10 @@ internal static class LeMetaEventDecoder
             new("Scanner Address", HciValueFormatter.BdAddr(scannerAddress)),
         };
 
-        return new DecodedEvent(name, HciDecodeStatus.Success, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
-    private static DecodedEvent CreateInvalid(string name)
+    private static DecodedResult CreateInvalid(string name)
         => new(name, HciDecodeStatus.Invalid, Array.Empty<HciField>());
 
     private static string FormatHex(byte value) => $"0x{value:X2}";

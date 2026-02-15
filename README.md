@@ -112,3 +112,19 @@ Filtering:
 Field model:
 
 - For now fields remain simple (`Name`, `Value`). A richer field schema (id/meta/value/display) will be introduced after key filtering is in place.
+
+## Vendor-Specific HCI Decoders
+
+Vendor-specific decoding is pluggable via `IVendorDecoder`.
+
+- The default decoder is `UnknownVendorDecoder`, which labels vendor-specific traffic as `Vendor Specific`.
+- Vendor implementations live under `src/BluetoothKit/LogTypes/Hci/Decoder/Vendor/<Vendor>` and can split command/event logic into `Commands/` and `Events/` subfolders.
+
+Example:
+
+```csharp
+using BluetoothKit.LogTypes.Hci.Decoder;
+using BluetoothKit.LogTypes.Hci.Decoder.Vendor.Samsung;
+
+var decoder = new HciDecoder(new SamsungVendorDecoder());
+```
