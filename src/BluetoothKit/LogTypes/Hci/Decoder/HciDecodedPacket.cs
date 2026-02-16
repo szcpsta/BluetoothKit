@@ -52,7 +52,7 @@ public sealed class HciUnknownDecodedPacket : HciDecodedPacket
 {
     public string Name => "Unknown packet type";
 
-    internal HciUnknownDecodedPacket(HciPacket packet) : base(packet, HciDecodeStatus.Invalid)
+    internal HciUnknownDecodedPacket(HciPacket packet) : base(packet, HciDecodeStatus.Unknown)
     {
     }
 }
