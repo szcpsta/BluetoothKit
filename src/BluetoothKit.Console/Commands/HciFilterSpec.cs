@@ -16,11 +16,7 @@ internal sealed record FilterSpec(
     public static FilterSpec CreateDefault()
         => new(new HashSet<byte>(), new HashSet<ushort>(), new HashSet<ushort>(), new HashSet<byte>(), new HashSet<byte>());
 
-    public bool IsEmpty => Ogfs.Count == 0
-                           && Ocfs.Count == 0
-                           && Opcodes.Count == 0
-                           && EventCodes.Count == 0
-                           && LeSubevents.Count == 0;
+    public bool IsEmpty => !HasCommandFilters && !HasEventFilters;
 
     public bool HasCommandFilters => Ogfs.Count != 0 || Ocfs.Count != 0 || Opcodes.Count != 0;
     public bool HasEventFilters => EventCodes.Count != 0 || LeSubevents.Count != 0;

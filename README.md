@@ -101,7 +101,7 @@ Status conventions:
 
 Unknown handling:
 
-- Unknown packet types produce `HciUnknownPacket` at parse time and map to `HciUnknownDecodedPacket` with `Status=Invalid`.
+- Unknown packet types produce `HciUnknownPacket` at parse time and map to `HciUnknownDecodedPacket` with `Status=Unknown`.
 - Unrecognized commands/events still produce `HciDecodedCommand`/`HciDecodedEvent` with `Status=Unknown`.
 
 Filtering:
