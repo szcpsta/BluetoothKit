@@ -10,6 +10,12 @@ public class HciCommandDecoder
 {
     private readonly IVendorDecoder _vendorDecoder;
 
+    private static readonly Dictionary<byte, Func<HciCommandPacket, DecodedResult>> OgfDecoders = new()
+    {
+        [0x04] = InformationalParametersDecoder.Decode,
+        [0x08] = LeControllerCommandsDecoder.Decode,
+    };
+
     public HciCommandDecoder() : this(new UnknownVendorDecoder())
     {
     }
@@ -27,15 +33,9 @@ public class HciCommandDecoder
             return new HciDecodedCommand(packet, vendorDecoded.Status, vendorDecoded.Name, vendorDecoded.Fields);
         }
 
-        if (packet.Opcode.Ogf == 0x04)
+        if (OgfDecoders.TryGetValue(packet.Opcode.Ogf, out var handler))
         {
-            var decoded = InformationalParametersDecoder.DecodeCommand(packet);
-            return new HciDecodedCommand(packet, decoded.Status, decoded.Name, decoded.Fields);
-        }
-
-        if (packet.Opcode.Ogf == 0x08)
-        {
-            var decoded = LeControllerCommandsDecoder.DecodeCommand(packet);
+            var decoded = handler(packet);
             return new HciDecodedCommand(packet, decoded.Status, decoded.Name, decoded.Fields);
         }
 

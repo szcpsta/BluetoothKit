@@ -10,9 +10,9 @@ public class HciEventDecoder
 {
     private readonly IVendorDecoder _vendorDecoder;
 
-    private delegate DecodedResult DecodeEventHandler(string name, HciSpanReader span);
+    private delegate DecodedResult DecodeHandler(string name, HciSpanReader span);
 
-    private sealed record EventSpec(string Name, DecodeEventHandler Decode);
+    private sealed record EventSpec(string Name, DecodeHandler Decode);
 
     private static readonly Dictionary<byte, EventSpec> EventSpecs = new()
     {
@@ -39,7 +39,7 @@ public class HciEventDecoder
 
         if (packet.EventCode.Value == LeMetaEventDecoder.EventCode)
         {
-            var leDecoded = LeMetaEventDecoder.DecodeEvent(packet);
+            var leDecoded = LeMetaEventDecoder.Decode(packet);
             return new HciDecodedEvent(packet, leDecoded.Status, leDecoded.Name, leDecoded.Fields);
         }
 

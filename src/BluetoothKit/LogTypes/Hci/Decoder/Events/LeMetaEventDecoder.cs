@@ -25,7 +25,7 @@ internal static class LeMetaEventDecoder
         [0x13] = new("LE Scan Request Received", DecodeScanRequestReceivedEvent),
     };
 
-    internal static DecodedResult DecodeEvent(HciEventPacket packet)
+    internal static DecodedResult Decode(HciEventPacket packet)
     {
         var span = new HciSpanReader(packet.Parameters.Span);
         if (!span.TryReadU8(out var subeventCode))
