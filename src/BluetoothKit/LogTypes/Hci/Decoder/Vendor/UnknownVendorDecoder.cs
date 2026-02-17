@@ -9,15 +9,9 @@ public sealed class UnknownVendorDecoder : IVendorDecoder
 {
     public string VendorId => "Vendor Specific";
 
-    public bool TryDecodeCommand(HciCommandPacket packet, out DecodedResult decoded)
-    {
-        decoded = default!;
-        return false;
-    }
+    public DecodedResult DecodeCommand(HciCommandPacket packet)
+        => new(VendorId, HciDecodeStatus.Unknown, Array.Empty<HciField>());
 
-    public bool TryDecodeEvent(HciEventPacket packet, out DecodedResult decoded)
-    {
-        decoded = default!;
-        return false;
-    }
+    public DecodedResult DecodeEvent(HciEventPacket packet)
+        => new(VendorId, HciDecodeStatus.Unknown, Array.Empty<HciField>());
 }

@@ -2,22 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using BluetoothKit.LogTypes.Hci.Common;
-
 namespace BluetoothKit.LogTypes.Hci.Decoder.Vendor.Samsung.Commands;
 
 internal sealed class SamsungCommandDecoder
 {
-    public bool TryDecodeCommand(HciCommandPacket packet, out DecodedResult decoded)
+    public DecodedResult DecodeCommand(HciCommandPacket packet)
     {
-        decoded = default!;
-
-        if (!packet.Opcode.IsVendorSpecific)
-            return false;
-
-        switch (packet.Opcode.Ocf)
-        {
-            default:
-                return false;
-        }
+        return new DecodedResult(VendorIds.Samsung, HciDecodeStatus.Unknown, Array.Empty<HciField>());
     }
 }

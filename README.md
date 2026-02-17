@@ -99,6 +99,12 @@ Status conventions:
 - `Unknown`: structure is valid but the command/event is not recognized
 - `Invalid`: structure is not valid (e.g., parameter length mismatch)
 
+Decode method pattern:
+
+- Decoders use `Decode*` (not `TryDecode*`). The parser is the only place that returns a boolean.
+- `Decode*` always returns a `DecodedResult` and uses `HciDecodeStatus.Unknown` when the structure is valid but the opcode/event/subevent is not recognized.
+- `HciDecodeStatus.Invalid` is reserved for structurally invalid payloads after the packet has already been classified (e.g., length mismatches).
+
 Unknown handling:
 
 - Unknown packet types produce `HciUnknownPacket` at parse time and map to `HciUnknownDecodedPacket` with `Status=Unknown`.

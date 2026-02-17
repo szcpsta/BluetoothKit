@@ -10,6 +10,14 @@ public class HciEventDecoder
 {
     private readonly IVendorDecoder _vendorDecoder;
 
+    private sealed record EventSpec(string Name, Func<string, HciEventPacket, DecodedResult> Decode);
+
+    private static readonly Dictionary<byte, EventSpec> EventSpecs = new()
+    {
+        [0x0E] = new("Command Complete", DecodeCommandCompleteEvent),
+        [0x0F] = new("Command Status", DecodeCommandStatusEvent),
+    };
+
     public HciEventDecoder() : this(new UnknownVendorDecoder())
     {
     }
@@ -23,35 +31,37 @@ public class HciEventDecoder
     {
         if (packet.EventCode.IsVendorSpecific)
         {
-            if (_vendorDecoder.TryDecodeEvent(packet, out var vendorDecoded))
-                return new HciDecodedEvent(packet, vendorDecoded.Status, vendorDecoded.Name, vendorDecoded.Fields);
-
-            return new HciDecodedEvent(packet, HciDecodeStatus.Unknown, _vendorDecoder.VendorId, Array.Empty<HciField>());
+            var vendorDecoded = _vendorDecoder.DecodeEvent(packet);
+            return new HciDecodedEvent(packet, vendorDecoded.Status, vendorDecoded.Name, vendorDecoded.Fields);
         }
 
-        return packet.EventCode.Value switch
+        if (packet.EventCode.Value == LeMetaEventDecoder.EventCode)
         {
-            0x3E when LeMetaEventDecoder.TryDecodeEvent(packet, out var leDecoded)
-                => new HciDecodedEvent(packet, leDecoded.Status, leDecoded.Name, leDecoded.Fields),
-            0x0E => DecodeCommandCompleteEvent("Command Complete", packet),
-            0x0F => DecodeCommandStatusEvent("Command Status", packet),
-            _ => new HciDecodedEvent(packet, HciDecodeStatus.Unknown, "Unknown", Array.Empty<HciField>())
-        };
+            var leDecoded = LeMetaEventDecoder.DecodeEvent(packet);
+            return new HciDecodedEvent(packet, leDecoded.Status, leDecoded.Name, leDecoded.Fields);
+        }
+
+        if (EventSpecs.TryGetValue(packet.EventCode.Value, out var spec))
+        {
+            var decoded = spec.Decode(spec.Name, packet);
+            return new HciDecodedEvent(packet, decoded.Status, decoded.Name, decoded.Fields);
+        }
+
+        return new HciDecodedEvent(packet, HciDecodeStatus.Unknown, "Unknown", Array.Empty<HciField>());
     }
 
-    // Event Code 0x0E
-    private static HciDecodedEvent DecodeCommandCompleteEvent(string name, HciEventPacket packet)
+    private static DecodedResult DecodeCommandCompleteEvent(string name, HciEventPacket packet)
     {
         var span = new HciSpanReader(packet.Parameters.Span);
         if (!span.TryReadU8(out var numHciCommandPackets)
             || !span.TryReadU16(out var opcodeValue))
         {
-            return CreateInvalid(packet, name);
+            return CreateInvalid(name);
         }
 
         var opcode = new HciOpcode(opcodeValue);
         if (!span.TryReadU8(out var status))
-            return CreateInvalid(packet, name);
+            return CreateInvalid(name);
 
         var fields = new List<HciField>
         {
@@ -63,11 +73,10 @@ public class HciEventDecoder
         if (!span.IsEmpty)
             fields.Add(new HciField("Return Parameters", Convert.ToHexString(span.RemainingSpan)));
 
-        return new HciDecodedEvent(packet, HciDecodeStatus.Success, name, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
-    // Event Code 0x0F
-    private static HciDecodedEvent DecodeCommandStatusEvent(string name, HciEventPacket packet)
+    private static DecodedResult DecodeCommandStatusEvent(string name, HciEventPacket packet)
     {
         var span = new HciSpanReader(packet.Parameters.Span);
         if (!span.TryReadU8(out var status)
@@ -75,7 +84,7 @@ public class HciEventDecoder
             || !span.TryReadU16(out var opcodeValue)
             || !span.IsEmpty)
         {
-            return CreateInvalid(packet, name);
+            return CreateInvalid(name);
         }
 
         var fields = new List<HciField>
@@ -85,9 +94,9 @@ public class HciEventDecoder
             new("Opcode", new HciOpcode(opcodeValue).ToString())
         };
 
-        return new HciDecodedEvent(packet, HciDecodeStatus.Success, name, fields);
+        return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
-    private static HciDecodedEvent CreateInvalid(HciEventPacket packet, string name)
-        => new(packet, HciDecodeStatus.Invalid, name, Array.Empty<HciField>());
+    private static DecodedResult CreateInvalid(string name)
+        => new(name, HciDecodeStatus.Invalid, Array.Empty<HciField>());
 }

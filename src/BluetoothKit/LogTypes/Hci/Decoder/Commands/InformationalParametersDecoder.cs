@@ -8,58 +8,36 @@ namespace BluetoothKit.LogTypes.Hci.Decoder.Commands;
 
 internal static class InformationalParametersDecoder
 {
-    internal static bool TryDecodeCommand(HciCommandPacket packet, out DecodedResult decoded)
-    {
-        decoded = default!;
+    private delegate DecodedResult DecodeCommandHandler(string name, HciSpanReader span);
 
-        var parameters = packet.Parameters.Span;
-        switch (packet.Opcode.Ocf)
-        {
-            case 0x0001:
-                decoded = DecodeNoParamsCommand("Read Local Version Information", parameters);
-                return true;
-            case 0x0002:
-                decoded = DecodeNoParamsCommand("Read Local Supported Commands", parameters);
-                return true;
-            case 0x0003:
-                decoded = DecodeNoParamsCommand("Read Local Supported Features", parameters);
-                return true;
-            case 0x0004:
-                decoded = DecodeReadLocalExtendedFeaturesCommand("Read Local Extended Features", parameters);
-                return true;
-            case 0x0005:
-                decoded = DecodeNoParamsCommand("Read Buffer Size", parameters);
-                return true;
-            case 0x0009:
-                decoded = DecodeNoParamsCommand("Read BD_ADDR", parameters);
-                return true;
-            case 0x000A:
-                decoded = DecodeNoParamsCommand("Read Data Block Size", parameters);
-                return true;
-            case 0x000B:
-                decoded = DecodeNoParamsCommand("Read Local Supported Codecs [v1]", parameters);
-                return true;
-            case 0x000C:
-                decoded = DecodeNoParamsCommand("Read Local Simple Pairing Options", parameters);
-                return true;
-            case 0x000D:
-                decoded = DecodeNoParamsCommand("Read Local Supported Codecs [v2]", parameters);
-                return true;
-            case 0x000E:
-                decoded = DecodeReadLocalSupportedCodecCapabilitiesCommand("Read Local Supported Codec Capabilities", parameters);
-                return true;
-            case 0x000F:
-                decoded = DecodeReadLocalSupportedControllerDelayCommand("Read Local Supported Controller Delay", parameters);
-                return true;
-            default:
-                return false;
-        }
+    private sealed record CommandSpec(string Name, DecodeCommandHandler Decode);
+
+    private static readonly Dictionary<ushort, CommandSpec> Specs = new()
+    {
+        [0x0001] = new("Read Local Version Information", DecodeNoParamsCommand),
+        [0x0002] = new("Read Local Supported Commands", DecodeNoParamsCommand),
+        [0x0003] = new("Read Local Supported Features", DecodeNoParamsCommand),
+        [0x0004] = new("Read Local Extended Features", DecodeReadLocalExtendedFeaturesCommand),
+        [0x0005] = new("Read Buffer Size", DecodeNoParamsCommand),
+        [0x0009] = new("Read BD_ADDR", DecodeNoParamsCommand),
+        [0x000A] = new("Read Data Block Size", DecodeNoParamsCommand),
+        [0x000B] = new("Read Local Supported Codecs [v1]", DecodeNoParamsCommand),
+        [0x000C] = new("Read Local Simple Pairing Options", DecodeNoParamsCommand),
+        [0x000D] = new("Read Local Supported Codecs [v2]", DecodeNoParamsCommand),
+        [0x000E] = new("Read Local Supported Codec Capabilities", DecodeReadLocalSupportedCodecCapabilitiesCommand),
+        [0x000F] = new("Read Local Supported Controller Delay", DecodeReadLocalSupportedControllerDelayCommand),
+    };
+
+    internal static DecodedResult DecodeCommand(HciCommandPacket packet)
+    {
+        if (!Specs.TryGetValue(packet.Opcode.Ocf, out var spec))
+            return new DecodedResult("Unknown", HciDecodeStatus.Unknown, Array.Empty<HciField>());
+
+        return spec.Decode(spec.Name, new HciSpanReader(packet.Parameters.Span));
     }
 
-    // OGF 0x04, OCF 0x0004
-    private static DecodedResult DecodeReadLocalExtendedFeaturesCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeReadLocalExtendedFeaturesCommand(string name, HciSpanReader span)
     {
-        var span = new HciSpanReader(parameters);
         if (!span.TryReadU8(out var pageNumber) || !span.IsEmpty)
             return CreateInvalid(name);
 
@@ -71,11 +49,8 @@ internal static class InformationalParametersDecoder
         return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
-    // OGF 0x04, OCF 0x000E
-    private static DecodedResult DecodeReadLocalSupportedCodecCapabilitiesCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeReadLocalSupportedCodecCapabilitiesCommand(string name, HciSpanReader span)
     {
-        var span = new HciSpanReader(parameters);
-
         if (!span.TryReadBytes(5, out var codecId)
             || !span.TryReadU8(out var transportType)
             || !span.TryReadU8(out var direction)
@@ -94,11 +69,8 @@ internal static class InformationalParametersDecoder
         return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
-    // OGF 0x04, OCF 0x000F
-    private static DecodedResult DecodeReadLocalSupportedControllerDelayCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeReadLocalSupportedControllerDelayCommand(string name, HciSpanReader span)
     {
-        var span = new HciSpanReader(parameters);
-
         if (!span.TryReadBytes(5, out var codecId)
             || !span.TryReadU8(out var transportType)
             || !span.TryReadU8(out var direction)
@@ -121,18 +93,15 @@ internal static class InformationalParametersDecoder
         return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
-    // OGF 0x04, OCF 0x0001/0x0002/0x0003/0x0005/0x0009/0x000A/0x000B/0x000C/0x000D
-    private static DecodedResult DecodeNoParamsCommand(string name, ReadOnlySpan<byte> parameters)
+    private static DecodedResult DecodeNoParamsCommand(string name, HciSpanReader span)
     {
-        if (parameters.IsEmpty)
+        if (span.IsEmpty)
             return new DecodedResult(name, HciDecodeStatus.Success, Array.Empty<HciField>());
 
         return CreateInvalid(name);
     }
 
     private static DecodedResult CreateInvalid(string name)
-    {
-        return new DecodedResult(name, HciDecodeStatus.Invalid, Array.Empty<HciField>());
-    }
+        => new(name, HciDecodeStatus.Invalid, Array.Empty<HciField>());
 
 }
