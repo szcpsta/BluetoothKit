@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using BluetoothKit.LogTypes.Hci.Common;
+using BluetoothKit.LogTypes.Hci.Decoder.Formatters;
 using BluetoothKit.LogTypes.Hci.Decoder.Vendor;
 
 namespace BluetoothKit.LogTypes.Hci.Decoder.Events;
@@ -69,11 +70,11 @@ public class HciEventDecoder
         {
             new("Num HCI Command Packets", numHciCommandPackets.ToString()),
             new("Opcode", opcode.ToString()),
-            new("Status", status == 0 ? "0x00" : $"0x{status:X2}")
+            new("Status", HciValueFormatter.Hex(status))
         };
 
         if (!span.IsEmpty)
-            fields.Add(new HciField("Return Parameters", Convert.ToHexString(span.RemainingSpan)));
+            fields.Add(new HciField("Return Parameters", HciValueFormatter.HexBytes(span.RemainingSpan)));
 
         return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
@@ -90,7 +91,7 @@ public class HciEventDecoder
 
         var fields = new List<HciField>
         {
-            new("Status", status == 0 ? "0x00" : $"0x{status:X2}"),
+            new("Status", HciValueFormatter.Hex(status)),
             new("Num HCI Command Packets", numHciCommandPackets.ToString()),
             new("Opcode", new HciOpcode(opcodeValue).ToString())
         };
