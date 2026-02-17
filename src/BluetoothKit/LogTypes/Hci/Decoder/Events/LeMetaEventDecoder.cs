@@ -43,7 +43,7 @@ internal static class LeMetaEventDecoder
                 decoded = DecodeScanRequestReceivedEvent("LE Scan Request Received", subeventCode, span);
                 return true;
             default:
-                decoded = new DecodedResult($"LE Meta event (Subevent {FormatHex(subeventCode)})", HciDecodeStatus.Unknown, Array.Empty<HciField>());
+                decoded = new DecodedResult($"LE Meta event (Subevent {HciValueFormatter.Hex(subeventCode)})", HciDecodeStatus.Unknown, Array.Empty<HciField>());
                 return true;
         }
     }
@@ -76,7 +76,7 @@ internal static class LeMetaEventDecoder
             fields.Add(new HciField($"Report[{i}] Address Type", LeValueFormatter.AddressType(addressType)));
             fields.Add(new HciField($"Report[{i}] Address", HciValueFormatter.BdAddr(address)));
             fields.Add(new HciField($"Report[{i}] Data Length", dataLength.ToString()));
-            fields.Add(new HciField($"Report[{i}] Data", FormatHexBytes(data)));
+            fields.Add(new HciField($"Report[{i}] Data", HciValueFormatter.HexBytes(data)));
             fields.Add(new HciField($"Report[{i}] RSSI", LeValueFormatter.Dbm(rssi)));
         }
 
@@ -167,7 +167,7 @@ internal static class LeMetaEventDecoder
             fields.Add(new HciField($"Report[{i}] Direct Address Type", LeValueFormatter.DirectAddressType(directAddressType)));
             fields.Add(new HciField($"Report[{i}] Direct Address", HciValueFormatter.BdAddr(directAddress)));
             fields.Add(new HciField($"Report[{i}] Data Length", dataLength.ToString()));
-            fields.Add(new HciField($"Report[{i}] Data", FormatHexBytes(data)));
+            fields.Add(new HciField($"Report[{i}] Data", HciValueFormatter.HexBytes(data)));
         }
 
         if (!span.IsEmpty)
@@ -206,9 +206,9 @@ internal static class LeMetaEventDecoder
         {
             new("Subevent Code", HciValueFormatter.Hex(subeventCode)),
             new("Status", HciValueFormatter.Hex(status)),
-            new("Advertising Handle", FormatHex(advertisingHandle)),
-            new("Connection Handle", FormatHex16(connectionHandle)),
-            new("Num Completed Extended Advertising Events", FormatHex(numCompletedEvents)),
+            new("Advertising Handle", HciValueFormatter.Hex(advertisingHandle)),
+            new("Connection Handle", HciValueFormatter.Hex16(connectionHandle)),
+            new("Num Completed Extended Advertising Events", HciValueFormatter.Hex(numCompletedEvents)),
         };
 
         return new DecodedResult(name, HciDecodeStatus.Success, fields);
@@ -228,7 +228,7 @@ internal static class LeMetaEventDecoder
         var fields = new List<HciField>
         {
             new("Subevent Code", HciValueFormatter.Hex(subeventCode)),
-            new("Advertising Handle", FormatHex(advertisingHandle)),
+            new("Advertising Handle", HciValueFormatter.Hex(advertisingHandle)),
             new("Scanner Address Type", LeValueFormatter.AddressType(scannerAddressType)),
             new("Scanner Address", HciValueFormatter.BdAddr(scannerAddress)),
         };
@@ -239,8 +239,4 @@ internal static class LeMetaEventDecoder
     private static DecodedResult CreateInvalid(string name)
         => new(name, HciDecodeStatus.Invalid, Array.Empty<HciField>());
 
-    private static string FormatHex(byte value) => $"0x{value:X2}";
-    private static string FormatHex16(ushort value) => $"0x{value:X4}";
-    private static string FormatHexBytes(ReadOnlySpan<byte> value)
-        => value.IsEmpty ? "0x" : $"0x{Convert.ToHexString(value)}";
 }

@@ -125,7 +125,7 @@ internal static class LeControllerCommandsDecoder
         var fields = new List<HciField>
         {
             new("Advertising Data Length", dataLength.ToString()),
-            new("Advertising Data", FormatHexBytes(payload)),
+            new("Advertising Data", HciValueFormatter.HexBytes(payload)),
         };
 
         return new DecodedResult(name, HciDecodeStatus.Success, fields);
@@ -147,7 +147,7 @@ internal static class LeControllerCommandsDecoder
         var fields = new List<HciField>
         {
             new("Scan Response Data Length", dataLength.ToString()),
-            new("Scan Response Data", FormatHexBytes(payload)),
+            new("Scan Response Data", HciValueFormatter.HexBytes(payload)),
         };
 
         return new DecodedResult(name, HciDecodeStatus.Success, fields);
@@ -227,7 +227,7 @@ internal static class LeControllerCommandsDecoder
 
         var fields = new List<HciField>
         {
-            new("Advertising Handle", FormatHex(advertisingHandle)),
+            new("Advertising Handle", HciValueFormatter.Hex(advertisingHandle)),
             new("Random Address", HciValueFormatter.BdAddr(randomAddress)),
         };
 
@@ -260,7 +260,7 @@ internal static class LeControllerCommandsDecoder
 
         var fields = new List<HciField>
         {
-            new("Advertising Handle", FormatHex(advertisingHandle)),
+            new("Advertising Handle", HciValueFormatter.Hex(advertisingHandle)),
             new("Advertising Event Properties", LeValueFormatter.AdvertisingEventProperties(advertisingEventProperties)),
             new("Primary Advertising Interval Min", LeValueFormatter.Interval625us(primaryAdvertisingIntervalMin)),
             new("Primary Advertising Interval Max", LeValueFormatter.Interval625us(primaryAdvertisingIntervalMax)),
@@ -271,7 +271,7 @@ internal static class LeControllerCommandsDecoder
             new("Advertising Filter Policy", LeValueFormatter.AdvertisingFilterPolicy(advertisingFilterPolicy)),
             new("Advertising TX Power", LeValueFormatter.AdvertisingTxPower(advertisingTxPower)),
             new("Primary Advertising PHY", LeValueFormatter.PrimaryAdvertisingPhy(primaryAdvertisingPhy)),
-            new("Secondary Advertising Max Skip", FormatHex(secondaryAdvertisingMaxSkip)),
+            new("Secondary Advertising Max Skip", HciValueFormatter.Hex(secondaryAdvertisingMaxSkip)),
             new("Secondary Advertising PHY", LeValueFormatter.SecondaryAdvertisingPhy(secondaryAdvertisingPhy)),
             new("Advertising SID", LeValueFormatter.AdvertisingSid(advertisingSid)),
             new("Scan Request Notification Enable", LeValueFormatter.ScanRequestNotificationEnable(scanRequestNotificationEnable)),
@@ -308,7 +308,7 @@ internal static class LeControllerCommandsDecoder
 
         var fields = new List<HciField>
         {
-            new("Advertising Handle", FormatHex(advertisingHandle)),
+            new("Advertising Handle", HciValueFormatter.Hex(advertisingHandle)),
             new("Advertising Event Properties", LeValueFormatter.AdvertisingEventProperties(advertisingEventProperties)),
             new("Primary Advertising Interval Min", LeValueFormatter.Interval625us(primaryAdvertisingIntervalMin)),
             new("Primary Advertising Interval Max", LeValueFormatter.Interval625us(primaryAdvertisingIntervalMax)),
@@ -319,7 +319,7 @@ internal static class LeControllerCommandsDecoder
             new("Advertising Filter Policy", LeValueFormatter.AdvertisingFilterPolicy(advertisingFilterPolicy)),
             new("Advertising TX Power", LeValueFormatter.AdvertisingTxPower(advertisingTxPower)),
             new("Primary Advertising PHY", LeValueFormatter.PrimaryAdvertisingPhy(primaryAdvertisingPhy)),
-            new("Secondary Advertising Max Skip", FormatHex(secondaryAdvertisingMaxSkip)),
+            new("Secondary Advertising Max Skip", HciValueFormatter.Hex(secondaryAdvertisingMaxSkip)),
             new("Secondary Advertising PHY", LeValueFormatter.SecondaryAdvertisingPhy(secondaryAdvertisingPhy)),
             new("Advertising SID", LeValueFormatter.AdvertisingSid(advertisingSid)),
             new("Scan Request Notification Enable", LeValueFormatter.ScanRequestNotificationEnable(scanRequestNotificationEnable)),
@@ -347,11 +347,11 @@ internal static class LeControllerCommandsDecoder
 
         var fields = new List<HciField>
         {
-            new("Advertising Handle", FormatHex(advertisingHandle)),
+            new("Advertising Handle", HciValueFormatter.Hex(advertisingHandle)),
             new("Operation", LeValueFormatter.Operation(operation)),
             new("Fragment Preference", LeValueFormatter.FragmentPreference(fragmentPreference)),
             new("Advertising Data Length", dataLength.ToString()),
-            new("Advertising Data", FormatHexBytes(data)),
+            new("Advertising Data", HciValueFormatter.HexBytes(data)),
         };
 
         return new DecodedResult(name, HciDecodeStatus.Success, fields);
@@ -374,11 +374,11 @@ internal static class LeControllerCommandsDecoder
 
         var fields = new List<HciField>
         {
-            new("Advertising Handle", FormatHex(advertisingHandle)),
+            new("Advertising Handle", HciValueFormatter.Hex(advertisingHandle)),
             new("Operation", LeValueFormatter.Operation(operation)),
             new("Fragment Preference", LeValueFormatter.FragmentPreference(fragmentPreference)),
             new("Scan Response Data Length", dataLength.ToString()),
-            new("Scan Response Data", FormatHexBytes(data)),
+            new("Scan Response Data", HciValueFormatter.HexBytes(data)),
         };
 
         return new DecodedResult(name, HciDecodeStatus.Success, fields);
@@ -409,9 +409,9 @@ internal static class LeControllerCommandsDecoder
                 return CreateInvalid(name);
             }
 
-            fields.Add(new HciField($"Set[{i}] Advertising Handle", FormatHex(advertisingHandle)));
-            fields.Add(new HciField($"Set[{i}] Duration", FormatHex16(duration)));
-            fields.Add(new HciField($"Set[{i}] Max Extended Advertising Events", FormatHex(maxExtendedAdvertisingEvents)));
+            fields.Add(new HciField($"Set[{i}] Advertising Handle", HciValueFormatter.Hex(advertisingHandle)));
+            fields.Add(new HciField($"Set[{i}] Duration", HciValueFormatter.Hex16(duration)));
+            fields.Add(new HciField($"Set[{i}] Max Extended Advertising Events", HciValueFormatter.Hex(maxExtendedAdvertisingEvents)));
         }
 
         if (!span.IsEmpty)
@@ -429,7 +429,7 @@ internal static class LeControllerCommandsDecoder
 
         var fields = new List<HciField>
         {
-            new("Advertising Handle", FormatHex(advertisingHandle)),
+            new("Advertising Handle", HciValueFormatter.Hex(advertisingHandle)),
         };
 
         return new DecodedResult(name, HciDecodeStatus.Success, fields);
@@ -509,8 +509,8 @@ internal static class LeControllerCommandsDecoder
         {
             new("Enable", LeValueFormatter.Enable(enable)),
             new("Filter Duplicates", LeValueFormatter.FilterDuplicates(filterDuplicates)),
-            new("Duration", FormatScanDuration(duration)),
-            new("Period", FormatScanPeriod(period)),
+            new("Duration", LeValueFormatter.ScanDuration(duration)),
+            new("Period", LeValueFormatter.ScanPeriod(period)),
         };
 
         return new DecodedResult(name, HciDecodeStatus.Success, fields);
@@ -527,18 +527,5 @@ internal static class LeControllerCommandsDecoder
 
     private static DecodedResult CreateInvalid(string name)
         => new(name, HciDecodeStatus.Invalid, Array.Empty<HciField>());
-
-    private static string FormatHex(byte value) => $"0x{value:X2}";
-    private static string FormatHex16(ushort value) => $"0x{value:X4}";
-    private static string FormatHex24(uint value) => $"0x{value:X6}";
-
-    private static string FormatHexBytes(ReadOnlySpan<byte> value)
-        => value.IsEmpty ? "0x" : $"0x{Convert.ToHexString(value)}";
-
-    private static string FormatScanDuration(ushort value)
-        => value == 0x0000 ? $"{FormatHex16(value)} (Scan continuously)" : FormatHex16(value);
-
-    private static string FormatScanPeriod(ushort value)
-        => value == 0x0000 ? $"{FormatHex16(value)} (Continuous)" : FormatHex16(value);
 
 }

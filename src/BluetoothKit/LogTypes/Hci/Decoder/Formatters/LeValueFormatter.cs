@@ -229,6 +229,12 @@ internal static class LeValueFormatter
         return $"{HciValueFormatter.Hex24(value)} ({ms.ToString("0.###", CultureInfo.InvariantCulture)} ms)";
     }
 
+    public static string ScanDuration(ushort value)
+        => value == 0x0000 ? $"{HciValueFormatter.Hex16(value)} (Scan continuously)" : HciValueFormatter.Hex16(value);
+
+    public static string ScanPeriod(ushort value)
+        => value == 0x0000 ? $"{HciValueFormatter.Hex16(value)} (Continuous)" : HciValueFormatter.Hex16(value);
+
     public static string AdvertisingTxPower(sbyte value)
     {
         var raw = unchecked((byte)value);
