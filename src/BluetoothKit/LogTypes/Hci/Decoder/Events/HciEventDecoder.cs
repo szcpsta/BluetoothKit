@@ -10,7 +10,9 @@ public class HciEventDecoder
 {
     private readonly IVendorDecoder _vendorDecoder;
 
-    private sealed record EventSpec(string Name, Func<string, HciEventPacket, DecodedResult> Decode);
+    private delegate DecodedResult DecodeEventHandler(string name, HciSpanReader span);
+
+    private sealed record EventSpec(string Name, DecodeEventHandler Decode);
 
     private static readonly Dictionary<byte, EventSpec> EventSpecs = new()
     {
@@ -43,16 +45,16 @@ public class HciEventDecoder
 
         if (EventSpecs.TryGetValue(packet.EventCode.Value, out var spec))
         {
-            var decoded = spec.Decode(spec.Name, packet);
+            var span = new HciSpanReader(packet.Parameters.Span);
+            var decoded = spec.Decode(spec.Name, span);
             return new HciDecodedEvent(packet, decoded.Status, decoded.Name, decoded.Fields);
         }
 
         return new HciDecodedEvent(packet, HciDecodeStatus.Unknown, "Unknown", Array.Empty<HciField>());
     }
 
-    private static DecodedResult DecodeCommandCompleteEvent(string name, HciEventPacket packet)
+    private static DecodedResult DecodeCommandCompleteEvent(string name, HciSpanReader span)
     {
-        var span = new HciSpanReader(packet.Parameters.Span);
         if (!span.TryReadU8(out var numHciCommandPackets)
             || !span.TryReadU16(out var opcodeValue))
         {
@@ -76,9 +78,8 @@ public class HciEventDecoder
         return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
-    private static DecodedResult DecodeCommandStatusEvent(string name, HciEventPacket packet)
+    private static DecodedResult DecodeCommandStatusEvent(string name, HciSpanReader span)
     {
-        var span = new HciSpanReader(packet.Parameters.Span);
         if (!span.TryReadU8(out var status)
             || !span.TryReadU8(out var numHciCommandPackets)
             || !span.TryReadU16(out var opcodeValue)
