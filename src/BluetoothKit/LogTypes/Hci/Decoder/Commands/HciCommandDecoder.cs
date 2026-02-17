@@ -23,17 +23,21 @@ public class HciCommandDecoder
     {
         if (packet.Opcode.IsVendorSpecific)
         {
-            if (_vendorDecoder.TryDecodeCommand(packet, out var vendorDecoded))
-                return new HciDecodedCommand(packet, vendorDecoded.Status, vendorDecoded.Name, vendorDecoded.Fields);
-
-            return new HciDecodedCommand(packet, HciDecodeStatus.Unknown, _vendorDecoder.VendorId, Array.Empty<HciField>());
+            var vendorDecoded = _vendorDecoder.DecodeCommand(packet);
+            return new HciDecodedCommand(packet, vendorDecoded.Status, vendorDecoded.Name, vendorDecoded.Fields);
         }
 
-        if (packet.Opcode.Ogf == 0x04 && InformationalParametersDecoder.TryDecodeCommand(packet, out var decoded))
+        if (packet.Opcode.Ogf == 0x04)
+        {
+            var decoded = InformationalParametersDecoder.DecodeCommand(packet);
             return new HciDecodedCommand(packet, decoded.Status, decoded.Name, decoded.Fields);
+        }
 
-        if (packet.Opcode.Ogf == 0x08 && LeControllerCommandsDecoder.TryDecodeCommand(packet, out var leDecoded))
-            return new HciDecodedCommand(packet, leDecoded.Status, leDecoded.Name, leDecoded.Fields);
+        if (packet.Opcode.Ogf == 0x08)
+        {
+            var decoded = LeControllerCommandsDecoder.DecodeCommand(packet);
+            return new HciDecodedCommand(packet, decoded.Status, decoded.Name, decoded.Fields);
+        }
 
         return new HciDecodedCommand(packet, HciDecodeStatus.Unknown, "Unknown", Array.Empty<HciField>());
     }

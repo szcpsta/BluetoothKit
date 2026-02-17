@@ -8,47 +8,42 @@ namespace BluetoothKit.LogTypes.Hci.Decoder.Events;
 
 internal static class LeMetaEventDecoder
 {
-    internal static bool TryDecodeEvent(HciEventPacket packet, out DecodedResult decoded)
+    internal const byte EventCode = 0x3E;
+    internal const string EventName = "LE Meta";
+
+    private delegate DecodedResult DecodeSubeventHandler(string name, byte subeventCode, HciSpanReader span);
+
+    private sealed record SubeventSpec(string Name, DecodeSubeventHandler Decode);
+
+    private static readonly Dictionary<byte, SubeventSpec> Specs = new()
     {
-        decoded = default!;
+        [0x02] = new("LE Advertising Report", DecodeAdvertisingReportEvent),
+        [0x0B] = new("LE Directed Advertising Report", DecodeDirectedAdvertisingReportEvent),
+        [0x0D] = new("LE Extended Advertising Report", DecodeExtendedAdvertisingReportEvent),
+        [0x11] = new("LE Scan Timeout", DecodeScanTimeoutEvent),
+        [0x12] = new("LE Advertising Set Terminated", DecodeAdvertisingSetTerminatedEvent),
+        [0x13] = new("LE Scan Request Received", DecodeScanRequestReceivedEvent),
+    };
 
-        if (packet.EventCode.Value != 0x3E)
-            return false;
-
+    internal static DecodedResult DecodeEvent(HciEventPacket packet)
+    {
         var span = new HciSpanReader(packet.Parameters.Span);
         if (!span.TryReadU8(out var subeventCode))
         {
-            decoded = CreateInvalid("LE Meta event");
-            return true;
+            return new DecodedResult(EventName, HciDecodeStatus.Invalid, Array.Empty<HciField>());
         }
 
-        switch (subeventCode)
+        if (!Specs.TryGetValue(subeventCode, out var spec))
         {
-            case 0x02:
-                decoded = DecodeAdvertisingReportEvent("LE Advertising Report", subeventCode, span);
-                return true;
-            case 0x0B:
-                decoded = DecodeDirectedAdvertisingReportEvent("LE Directed Advertising Report", subeventCode, span);
-                return true;
-            case 0x0D:
-                decoded = DecodeExtendedAdvertisingReportEvent("LE Extended Advertising Report", subeventCode, span);
-                return true;
-            case 0x11:
-                decoded = DecodeScanTimeoutEvent("LE Scan Timeout", subeventCode, span);
-                return true;
-            case 0x12:
-                decoded = DecodeAdvertisingSetTerminatedEvent("LE Advertising Set Terminated", subeventCode, span);
-                return true;
-            case 0x13:
-                decoded = DecodeScanRequestReceivedEvent("LE Scan Request Received", subeventCode, span);
-                return true;
-            default:
-                decoded = new DecodedResult($"LE Meta event (Subevent {HciValueFormatter.Hex(subeventCode)})", HciDecodeStatus.Unknown, Array.Empty<HciField>());
-                return true;
+            return new DecodedResult(
+                $"{EventName} (Subevent {HciValueFormatter.Hex(subeventCode)})",
+                HciDecodeStatus.Unknown,
+                Array.Empty<HciField>());
         }
+
+        return spec.Decode(spec.Name, subeventCode, span);
     }
 
-    // Event Code 0x3E, Subevent 0x02
     private static DecodedResult DecodeAdvertisingReportEvent(string name, byte subeventCode, HciSpanReader span)
     {
         if (!span.TryReadU8(out var numReports))
@@ -86,7 +81,6 @@ internal static class LeMetaEventDecoder
         return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
-    // Event Code 0x3E, Subevent 0x0B
     private static DecodedResult DecodeDirectedAdvertisingReportEvent(string name, byte subeventCode, HciSpanReader span)
     {
         if (!span.TryReadU8(out var numReports))
@@ -124,7 +118,6 @@ internal static class LeMetaEventDecoder
         return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
-    // Event Code 0x3E, Subevent 0x0D
     private static DecodedResult DecodeExtendedAdvertisingReportEvent(string name, byte subeventCode, HciSpanReader span)
     {
         if (!span.TryReadU8(out var numReports))
@@ -176,7 +169,6 @@ internal static class LeMetaEventDecoder
         return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
-    // Event Code 0x3E, Subevent 0x11
     private static DecodedResult DecodeScanTimeoutEvent(string name, byte subeventCode, HciSpanReader span)
     {
         if (!span.IsEmpty)
@@ -190,7 +182,6 @@ internal static class LeMetaEventDecoder
         return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
-    // Event Code 0x3E, Subevent 0x12
     private static DecodedResult DecodeAdvertisingSetTerminatedEvent(string name, byte subeventCode, HciSpanReader span)
     {
         if (!span.TryReadU8(out var status)
@@ -214,7 +205,6 @@ internal static class LeMetaEventDecoder
         return new DecodedResult(name, HciDecodeStatus.Success, fields);
     }
 
-    // Event Code 0x3E, Subevent 0x13
     private static DecodedResult DecodeScanRequestReceivedEvent(string name, byte subeventCode, HciSpanReader span)
     {
         if (!span.TryReadU8(out var advertisingHandle)
