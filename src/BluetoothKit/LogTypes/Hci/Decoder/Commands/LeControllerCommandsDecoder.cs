@@ -8,9 +8,9 @@ namespace BluetoothKit.LogTypes.Hci.Decoder.Commands;
 
 internal static class LeControllerCommandsDecoder
 {
-    private delegate DecodedResult DecodeCommandHandler(string name, HciSpanReader span);
+    private delegate DecodedResult DecodeHandler(string name, HciSpanReader span);
 
-    private sealed record CommandSpec(string Name, DecodeCommandHandler Decode);
+    private sealed record CommandSpec(string Name, DecodeHandler Decode);
 
     private static readonly Dictionary<ushort, CommandSpec> Specs = new()
     {
@@ -35,7 +35,7 @@ internal static class LeControllerCommandsDecoder
         [0x007F] = new("LE Set Extended Advertising Parameters [v2]", DecodeSetExtendedAdvertisingParametersV2Command),
     };
 
-    internal static DecodedResult DecodeCommand(HciCommandPacket packet)
+    internal static DecodedResult Decode(HciCommandPacket packet)
     {
         if (!Specs.TryGetValue(packet.Opcode.Ocf, out var spec))
             return new DecodedResult("Unknown", HciDecodeStatus.Unknown, Array.Empty<HciField>());
