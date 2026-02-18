@@ -54,6 +54,10 @@ internal sealed class HciFilterCommand : AsyncCommand<HciFilterCommand.Settings>
         [Description("LE Meta subevent filter (comma-separated, hex like 0x02)")]
         public string? LeSubevent { get; set; }
 
+        [CommandOption("--vendor-eventcode <VENDOREVENTCODE>")]
+        [Description("Vendor event code filter (comma-separated, hex like 0x0001)")]
+        public string? VendorEventCode { get; set; }
+
         internal FilterSpec ParsedFilter { get; private set; } = FilterSpec.CreateDefault();
 
         public override ValidationResult Validate()
@@ -226,11 +230,13 @@ internal sealed class HciFilterCommand : AsyncCommand<HciFilterCommand.Settings>
             var opcode = output.Filter.Opcode?.Count > 0 ? string.Join(", ", output.Filter.Opcode) : "n/a";
             var eventcode = output.Filter.EventCode?.Count > 0 ? string.Join(", ", output.Filter.EventCode) : "n/a";
             var leSubevent = output.Filter.LeSubevent?.Count > 0 ? string.Join(", ", output.Filter.LeSubevent) : "n/a";
+            var vendorEvent = output.Filter.VendorEventCode?.Count > 0 ? string.Join(", ", output.Filter.VendorEventCode) : "n/a";
             AnsiConsole.MarkupLine($"[bold green] Filter OGF     : {ogf}[/]");
             AnsiConsole.MarkupLine($"[bold green] Filter OCF     : {ocf}[/]");
             AnsiConsole.MarkupLine($"[bold green] Filter Opcode  : {opcode}[/]");
             AnsiConsole.MarkupLine($"[bold green] Filter Event   : {eventcode}[/]");
             AnsiConsole.MarkupLine($"[bold green] Filter LE Sub  : {leSubevent}[/]");
+            AnsiConsole.MarkupLine($"[bold green] Filter Vendor  : {vendorEvent}[/]");
         }
 
         if (output.Filter?.IsEmpty == true)
@@ -286,11 +292,13 @@ internal sealed class HciFilterCommand : AsyncCommand<HciFilterCommand.Settings>
         public List<string>? Opcode { get; init; }
         public List<string>? EventCode { get; init; }
         public List<string>? LeSubevent { get; init; }
+        public List<string>? VendorEventCode { get; init; }
         public bool IsEmpty => (OGF is null || OGF.Count == 0)
                                && (OCF is null || OCF.Count == 0)
                                && (Opcode is null || Opcode.Count == 0)
                                && (EventCode is null || EventCode.Count == 0)
-                               && (LeSubevent is null || LeSubevent.Count == 0);
+                               && (LeSubevent is null || LeSubevent.Count == 0)
+                               && (VendorEventCode is null || VendorEventCode.Count == 0);
 
         public static FilterOutputFilter FromSpec(FilterSpec spec) => new()
         {
@@ -299,6 +307,7 @@ internal sealed class HciFilterCommand : AsyncCommand<HciFilterCommand.Settings>
             Opcode = spec.Opcodes.Select(FormatOpcode).OrderBy(x => x).ToList(),
             EventCode = spec.EventCodes.Select(FormatEventCode).OrderBy(x => x).ToList(),
             LeSubevent = spec.LeSubevents.Select(FormatEventCode).OrderBy(x => x).ToList(),
+            VendorEventCode = spec.VendorEventCodes.Select(FormatOcf).OrderBy(x => x).ToList(),
         };
     }
 
@@ -384,7 +393,13 @@ internal sealed class HciFilterCommand : AsyncCommand<HciFilterCommand.Settings>
             return false;
         }
 
-        filter = baseFilter.Merge(new FilterSpec(ogfs, ocfs, opcodes, eventCodes, leSubevents));
+        if (!TryParseUshortList(settings.VendorEventCode, out var vendorEventCodes, out error, "vendor-eventcode"))
+        {
+            filter = FilterSpec.CreateDefault();
+            return false;
+        }
+
+        filter = baseFilter.Merge(new FilterSpec(ogfs, ocfs, opcodes, eventCodes, leSubevents, vendorEventCodes));
         return true;
     }
 

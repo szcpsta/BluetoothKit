@@ -1,7 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Linq;
+using System.Buffers.Binary;
 using BluetoothKit.LogTypes.Hci.Common;
 
 namespace BluetoothKit.Console.Commands;
@@ -11,15 +11,16 @@ internal sealed record FilterSpec(
     HashSet<ushort> Ocfs,
     HashSet<ushort> Opcodes,
     HashSet<byte> EventCodes,
-    HashSet<byte> LeSubevents)
+    HashSet<byte> LeSubevents,
+    HashSet<ushort> VendorEventCodes)
 {
     public static FilterSpec CreateDefault()
-        => new(new HashSet<byte>(), new HashSet<ushort>(), new HashSet<ushort>(), new HashSet<byte>(), new HashSet<byte>());
+        => new(new HashSet<byte>(), new HashSet<ushort>(), new HashSet<ushort>(), new HashSet<byte>(), new HashSet<byte>(), new HashSet<ushort>());
 
     public bool IsEmpty => !HasCommandFilters && !HasEventFilters;
 
     public bool HasCommandFilters => Ogfs.Count != 0 || Ocfs.Count != 0 || Opcodes.Count != 0;
-    public bool HasEventFilters => EventCodes.Count != 0 || LeSubevents.Count != 0;
+    public bool HasEventFilters => EventCodes.Count != 0 || LeSubevents.Count != 0 || VendorEventCodes.Count != 0;
 
     public FilterSpec Merge(FilterSpec other)
         => new(
@@ -27,7 +28,8 @@ internal sealed record FilterSpec(
             new HashSet<ushort>(Ocfs.Concat(other.Ocfs)),
             new HashSet<ushort>(Opcodes.Concat(other.Opcodes)),
             new HashSet<byte>(EventCodes.Concat(other.EventCodes)),
-            new HashSet<byte>(LeSubevents.Concat(other.LeSubevents)));
+            new HashSet<byte>(LeSubevents.Concat(other.LeSubevents)),
+            new HashSet<ushort>(VendorEventCodes.Concat(other.VendorEventCodes)));
 
     public bool MatchesCommand(HciOpcode opcode)
     {
@@ -59,6 +61,20 @@ internal sealed record FilterSpec(
                 return false;
 
             if (!LeSubevents.Contains(span[0]))
+                return false;
+        }
+
+        if (VendorEventCodes.Count != 0)
+        {
+            if (!packet.EventCode.IsVendorSpecific)
+                return false;
+
+            var span = packet.Parameters.Span;
+            if (span.Length < 2)
+                return false;
+
+            var vendorEventCode = BinaryPrimitives.ReadUInt16LittleEndian(span);
+            if (!VendorEventCodes.Contains(vendorEventCode))
                 return false;
         }
 
