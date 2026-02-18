@@ -1,8 +1,6 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Linq;
-
 namespace BluetoothKit.Console.Commands;
 
 internal static class HciFilterSets
@@ -56,7 +54,8 @@ internal static class HciFilterSets
                     0x11, // HCI_LE_Scan_Timeout
                     0x12, // HCI_LE_Advertising_Set_Terminated
                     0x13, // HCI_LE_Scan_Request_Received
-                }))
+                },
+                new HashSet<ushort>()))
     };
 
     public static bool TryGet(int id, out FilterSet set)
