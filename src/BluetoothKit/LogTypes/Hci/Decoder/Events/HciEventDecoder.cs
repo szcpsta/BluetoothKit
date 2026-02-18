@@ -18,6 +18,7 @@ public class HciEventDecoder
     private static readonly Dictionary<ushort, EventSpec> EventSpecs = new()
     {
         [0x0E] = new("Command Complete", DecodeCommandCompleteEvent),
+        [0x0F] = new("Command Status", DecodeCommandStatusEvent),
     };
 
     public HciEventDecoder() : this(new UnknownVendorDecoder())
@@ -37,15 +38,16 @@ public class HciEventDecoder
             return new HciDecodedEvent(packet, vendorDecoded.Status, vendorDecoded.Name, vendorDecoded.Fields);
         }
 
+        var span = new HciSpanReader(packet.Parameters.Span);
+
         if (packet.EventCode.Value == LeMetaEventDecoder.EventCode)
         {
-            var leDecoded = LeMetaEventDecoder.Decode(packet);
+            var leDecoded = LeMetaEventDecoder.Decode(span);
             return new HciDecodedEvent(packet, leDecoded.Status, leDecoded.Name, leDecoded.Fields);
         }
 
         if (EventSpecs.TryGetValue(packet.EventCode.Value, out var spec))
         {
-            var span = new HciSpanReader(packet.Parameters.Span);
             var decoded = spec.Decode(spec.Name, span);
             return new HciDecodedEvent(packet, decoded.Status, decoded.Name, decoded.Fields);
         }
