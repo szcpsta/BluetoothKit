@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using BluetoothKit.LogTypes.Hci.Common;
+
 namespace BluetoothKit.LogTypes.Hci.Decoder.Vendor.Samsung.Commands;
 
 internal sealed class SamsungCommandDecoder

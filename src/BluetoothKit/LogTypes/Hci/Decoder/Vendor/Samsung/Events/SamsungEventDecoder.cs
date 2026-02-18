@@ -3,6 +3,7 @@
 
 using BluetoothKit.LogTypes.Hci.Common;
 using BluetoothKit.LogTypes.Hci.Decoder.Formatters;
+
 namespace BluetoothKit.LogTypes.Hci.Decoder.Vendor.Samsung.Events;
 
 internal sealed class SamsungEventDecoder
