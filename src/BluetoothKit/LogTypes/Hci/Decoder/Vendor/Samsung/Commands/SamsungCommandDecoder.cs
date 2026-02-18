@@ -14,9 +14,9 @@ internal sealed class SamsungCommandDecoder
 
     public HciDecodedCommand Decode(HciCommandPacket packet)
     {
-        var span = new HciSpanReader(packet.Parameters.Span);
         if (OcfDecoders.TryGetValue(packet.Opcode.Ocf, out var handler))
         {
+            var span = new HciSpanReader(packet.Parameters.Span);
             var decoded = handler(span);
             return new HciDecodedCommand(packet, decoded.Status, decoded.Name, decoded.Fields);
         }

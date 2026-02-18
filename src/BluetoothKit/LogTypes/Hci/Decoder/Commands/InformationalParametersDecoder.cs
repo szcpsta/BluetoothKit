@@ -28,12 +28,12 @@ internal static class InformationalParametersDecoder
         [0x000F] = new("Read Local Supported Controller Delay", DecodeReadLocalSupportedControllerDelayCommand),
     };
 
-    internal static DecodedResult Decode(HciCommandPacket packet)
+    internal static DecodedResult Decode(ushort ocf, HciSpanReader span)
     {
-        if (!Specs.TryGetValue(packet.Opcode.Ocf, out var spec))
+        if (!Specs.TryGetValue(ocf, out var spec))
             return new DecodedResult("Unknown", HciDecodeStatus.Unknown, Array.Empty<HciField>());
 
-        return spec.Decode(spec.Name, new HciSpanReader(packet.Parameters.Span));
+        return spec.Decode(spec.Name, span);
     }
 
     private static DecodedResult DecodeReadLocalExtendedFeaturesCommand(string name, HciSpanReader span)
