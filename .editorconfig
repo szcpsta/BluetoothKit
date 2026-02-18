@@ -22,6 +22,9 @@ generated_code = true
 
 # C# files
 [*.cs]
+# Analyzer severities
+dotnet_diagnostic.IDE0005.severity = warning
+
 # New line preferences
 csharp_new_line_before_open_brace = all
 csharp_new_line_before_else = true

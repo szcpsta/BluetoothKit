@@ -3,7 +3,6 @@
 
 using BluetoothKit.LogTypes.Hci.Common;
 using BluetoothKit.LogTypes.Hci.Decoder;
-using BluetoothKit.LogTypes.Hci.Decoder.Vendor.Samsung;
 using BluetoothKit.LogTypes.Hci.Parser;
 using BluetoothKit.LogTypes.Hci.Reader;
 
