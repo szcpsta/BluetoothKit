@@ -105,6 +105,13 @@ Decode method pattern:
 - `Decode*` always returns a `DecodedResult` and uses `HciDecodeStatus.Unknown` when the structure is valid but the opcode/event/subevent is not recognized.
 - `HciDecodeStatus.Invalid` is reserved for structurally invalid payloads after the packet has already been classified (e.g., length mismatches).
 
+HCI packet formats (H4 payloads, notation: `[FieldName(size)]`):
+
+- `HciCommandPacket`: `[Opcode(2)][ParamLength(1)][Parameters(N)]`
+- `HciEventPacket`: `[EventCode(1)][ParamLength(1)][Parameters(N)]`
+
+Raw H4 framing adds a 1-byte packet type prefix before the payload (e.g., command = `0x01`, event = `0x04`).
+
 Unknown handling:
 
 - Unknown packet types produce `HciUnknownPacket` at parse time and map to `HciUnknownDecodedPacket` with `Status=Unknown`.

@@ -15,10 +15,9 @@ public class HciEventDecoder
 
     private sealed record EventSpec(string Name, DecodeHandler Decode);
 
-    private static readonly Dictionary<byte, EventSpec> EventSpecs = new()
+    private static readonly Dictionary<ushort, EventSpec> EventSpecs = new()
     {
         [0x0E] = new("Command Complete", DecodeCommandCompleteEvent),
-        [0x0F] = new("Command Status", DecodeCommandStatusEvent),
     };
 
     public HciEventDecoder() : this(new UnknownVendorDecoder())
