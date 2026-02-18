@@ -14,9 +14,9 @@ public sealed class SamsungVendorDecoder : IVendorDecoder
 
     public string VendorId => VendorIds.Samsung;
 
-    public DecodedResult DecodeCommand(HciCommandPacket packet)
-        => _commandDecoder.DecodeCommand(packet);
+    public HciDecodedCommand DecodeCommand(HciCommandPacket packet)
+        => _commandDecoder.Decode(packet);
 
-    public DecodedResult DecodeEvent(HciEventPacket packet)
-        => _eventDecoder.DecodeEvent(packet);
+    public HciDecodedEvent DecodeEvent(HciEventPacket packet)
+        => _eventDecoder.Decode(packet);
 }

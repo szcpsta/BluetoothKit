@@ -9,9 +9,9 @@ public sealed class UnknownVendorDecoder : IVendorDecoder
 {
     public string VendorId => "Vendor Specific";
 
-    public DecodedResult DecodeCommand(HciCommandPacket packet)
-        => new(VendorId, HciDecodeStatus.Unknown, Array.Empty<HciField>());
+    public HciDecodedCommand DecodeCommand(HciCommandPacket packet)
+        => new(packet, HciDecodeStatus.Unknown, VendorId, Array.Empty<HciField>());
 
-    public DecodedResult DecodeEvent(HciEventPacket packet)
-        => new(VendorId, HciDecodeStatus.Unknown, Array.Empty<HciField>());
+    public HciDecodedEvent DecodeEvent(HciEventPacket packet)
+        => new(packet, HciDecodeStatus.Unknown, VendorId, Array.Empty<HciField>());
 }

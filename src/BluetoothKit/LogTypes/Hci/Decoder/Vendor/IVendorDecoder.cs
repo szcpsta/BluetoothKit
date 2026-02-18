@@ -9,6 +9,6 @@ public interface IVendorDecoder
 {
     string VendorId { get; }
 
-    DecodedResult DecodeCommand(HciCommandPacket packet);
-    DecodedResult DecodeEvent(HciEventPacket packet);
+    HciDecodedCommand DecodeCommand(HciCommandPacket packet);
+    HciDecodedEvent DecodeEvent(HciEventPacket packet);
 }
