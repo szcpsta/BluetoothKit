@@ -27,7 +27,7 @@ internal sealed class HciFilterCommand : AsyncCommand<HciFilterCommand.Settings>
         public string Mode { get; set; } = "console";
 
         [CommandOption("-o|--out <PATH>")]
-        [Description("Output file path (optional; defaults to <input>.hci.json)")]
+        [Description("Output file path (optional; defaults to <input>.json; use 'stdout' for stdout)")]
         public string? OutputPath { get; set; }
 
         [CommandOption("--set <ID>")]
@@ -201,6 +201,15 @@ internal sealed class HciFilterCommand : AsyncCommand<HciFilterCommand.Settings>
         };
 
         var outputPath = ResolveOutputPath(settings);
+        if (IsStdoutPath(outputPath))
+        {
+            var stdout = System.Console.OpenStandardOutput();
+            JsonSerializer.Serialize(stdout, output, options);
+            stdout.WriteByte((byte)'\n');
+            stdout.Flush();
+            return;
+        }
+
         var outputDir = Path.GetDirectoryName(outputPath);
         if (!string.IsNullOrEmpty(outputDir) && !Directory.Exists(outputDir))
         {
@@ -267,6 +276,9 @@ internal sealed class HciFilterCommand : AsyncCommand<HciFilterCommand.Settings>
 
     private static string ResolveOutputPath(Settings settings)
     {
+        if (IsStdoutPath(settings.OutputPath))
+            return "stdout";
+
         if (!string.IsNullOrWhiteSpace(settings.OutputPath))
             return settings.OutputPath!;
 
@@ -276,6 +288,9 @@ internal sealed class HciFilterCommand : AsyncCommand<HciFilterCommand.Settings>
 
         return string.IsNullOrEmpty(directory) ? outputFileName : Path.Combine(directory, outputFileName);
     }
+
+    private static bool IsStdoutPath(string? outputPath)
+        => string.Equals(outputPath, "stdout", StringComparison.OrdinalIgnoreCase);
 
     private sealed class FilterOutput
     {
