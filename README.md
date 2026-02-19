@@ -63,7 +63,7 @@ HCI filter options:
 - `--ogf`, `--ocf`, `--opcode`, `--eventcode` (comma-separated, hex with `0x` prefix)
 - `--le-subevent` LE Meta subevent filter (comma-separated, hex with `0x` prefix)
 - `--mode` (`console` or `json`, default: `console`)
-- `--out` output path (optional; required when `--mode json`, defaults to `<input>.json`)
+- `--out` output path (optional; required when `--mode json`, defaults to `<input>.json`; use `stdout` to write JSON to stdout)
 
 If no filters are provided, the command prints a warning and produces no entries.
 
@@ -140,4 +140,32 @@ using BluetoothKit.LogTypes.Hci.Decoder;
 using BluetoothKit.LogTypes.Hci.Decoder.Vendor.Samsung;
 
 var decoder = new HciDecoder(new SamsungVendorDecoder());
+```
+
+## Publish (Deployment)
+
+The console app can be published as a self-contained binary. Choose the RID that matches your runtime.
+
+Linux x64:
+
+```bash
+dotnet publish src/BluetoothKit.Console/BluetoothKit.Console.csproj -c Release -r linux-x64 --self-contained true -o ./publish
+```
+
+Linux arm64:
+
+```bash
+dotnet publish src/BluetoothKit.Console/BluetoothKit.Console.csproj -c Release -r linux-arm64 --self-contained true -o ./publish
+```
+
+Windows x64:
+
+```bash
+dotnet publish src/BluetoothKit.Console/BluetoothKit.Console.csproj -c Release -r win-x64 --self-contained true -o .\\publish
+```
+
+Optional: ReadyToRun can slightly improve cold start at the cost of larger output size and longer publish time.
+
+```bash
+dotnet publish src/BluetoothKit.Console/BluetoothKit.Console.csproj -c Release -r linux-x64 --self-contained true -o ./publish -p:PublishReadyToRun=true
 ```
