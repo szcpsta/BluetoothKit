@@ -164,6 +164,32 @@ Windows x64:
 dotnet publish src/BluetoothKit.Console/BluetoothKit.Console.csproj -c Release -r win-x64 --self-contained true -o .\\publish
 ```
 
+macOS Intel (x64):
+
+```bash
+dotnet publish src/BluetoothKit.Console/BluetoothKit.Console.csproj -c Release -r osx-x64 --self-contained true -o ./publish
+```
+
+macOS Apple Silicon (arm64):
+
+```bash
+dotnet publish src/BluetoothKit.Console/BluetoothKit.Console.csproj -c Release -r osx-arm64 --self-contained true -o ./publish
+```
+
+Run the published binary:
+
+macOS / Linux:
+
+```bash
+./publish/BluetoothKit.Console hci filter --mode json --out stdout <path>
+```
+
+Windows (PowerShell):
+
+```powershell
+.\publish\BluetoothKit.Console.exe hci filter --mode json --out stdout <path>
+```
+
 Optional: ReadyToRun can slightly improve cold start at the cost of larger output size and longer publish time.
 
 ```bash
